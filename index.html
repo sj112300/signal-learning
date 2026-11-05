@@ -1,0 +1,1837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>信号与系统 · 诊断式学习小模型</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script src="vendor/katex/katex.min.js"></script>
+<script src="vendor/katex/contrib/auto-render.min.js"></script>
+<script>
+/* 本地公式组件缺失时（例如只拷走了 index.html）自动回退 CDN，避免页面直接显示 LaTeX 源码 */
+(function(){
+  if(typeof katex==='undefined' || typeof renderMathInElement==='undefined'){
+    document.write('<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">');
+    document.write('<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"><\/script>');
+    document.write('<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"><\/script>');
+  }
+})();
+</script>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --ink:#1f2933; --muted:#6b7280;
+  --accent:#2563eb; --accent-soft:#e8effd;
+  --ok:#16a34a; --ok-soft:#e7f6ec;
+  --warn:#d97706; --warn-soft:#fdf3e3;
+  --bad:#dc2626; --bad-soft:#fdeaea;
+  --line:#e5e7eb; --radius:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.65;padding:24px 16px 60px}
+.wrap{max-width:860px;margin:0 auto}
+h1{font-size:22px;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.btn{display:inline-block;border:none;border-radius:10px;padding:11px 22px;font-size:15px;
+  cursor:pointer;font-weight:600;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#1d4ed8}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.btn-ghost:hover{color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn+.btn{margin-left:10px}
+.tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:20px;margin-right:6px}
+.tag-ch{background:var(--accent-soft);color:var(--accent)}
+.tag-d1{background:#f0fdf4;color:#15803d}
+.tag-d2{background:#fefce8;color:#a16207}
+.tag-d3{background:#fef2f2;color:#b91c1c}
+/* 进度条 */
+.pbar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;margin:14px 0 20px}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:4px;transition:width .3s}
+/* 题目 */
+.qtext{font-size:17px;margin-bottom:18px}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{border:1.5px solid var(--line);border-radius:10px;padding:12px 16px;cursor:pointer;
+  font-size:15px;transition:.12s;background:#fff}
+.opt:hover{border-color:var(--accent);background:var(--accent-soft)}
+.opt.sel{border-color:var(--accent);background:var(--accent-soft)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.feedback{margin-top:16px;padding:14px 16px;border-radius:10px;font-size:14px;display:none}
+.feedback.ok{display:block;background:var(--ok-soft);border:1px solid #bbe3c8}
+.feedback.bad{display:block;background:var(--bad-soft);border:1px solid #f5c2c2}
+.feedback b{display:block;margin-bottom:4px}
+/* 报告 */
+.kp-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.kp-row:last-child{border-bottom:none}
+.kp-name{flex:0 0 240px;font-size:14px}
+.kp-name small{display:block;color:var(--muted);font-size:11px}
+.kp-bar{flex:1;height:10px;background:#eef0f3;border-radius:6px;overflow:hidden}
+.kp-bar i{display:block;height:100%;border-radius:6px;transition:width .4s}
+.kp-stat{flex:0 0 205px;font-size:12px;color:var(--muted);text-align:right;line-height:1.7}
+.pill{font-size:12px;padding:2px 10px;border-radius:20px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.rx{border-left:4px solid var(--bad);background:#fffafa;border-radius:0 10px 10px 0;
+  padding:14px 18px;margin-bottom:12px}
+.rx.prereq{border-left-color:var(--warn);background:#fffdf7}
+.rx h4{font-size:15px;margin-bottom:6px}
+.rx p{font-size:13.5px;color:#374151}
+.rx a{color:var(--accent);font-size:13px;text-decoration:none}
+.rx a:hover{text-decoration:underline}
+.summary{padding:16px 18px;border-radius:12px;font-size:15px;margin-bottom:16px}
+.summary.good{background:var(--ok-soft)}
+.summary.mid{background:var(--warn-soft)}
+.summary.poor{background:var(--bad-soft)}
+.chap-h{font-size:13px;font-weight:700;color:var(--muted);margin:16px 0 4px;
+  padding-bottom:4px;border-bottom:1px solid var(--line)}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+/* 出题配置 */
+.cfg-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start}
+.cfg-col{flex:1;min-width:200px}
+.cfg-label{display:block;font-size:13px;font-weight:700;color:#374151;margin-bottom:7px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;font-size:12.5px;cursor:pointer;user-select:none}
+.chip input{position:absolute;opacity:0;width:0;height:0}
+.chip span{display:inline-block;padding:4px 11px;border:1px solid var(--line);border-radius:20px;
+  color:var(--muted);background:#fff;transition:.12s;line-height:1.5}
+.chip input:checked + span{background:var(--accent-soft);border-color:#bcd0f7;color:var(--accent);font-weight:600}
+.chip:hover span{border-color:var(--accent)}
+.cfg-ch{width:100%;font-size:11px;color:var(--muted);font-weight:700;margin:7px 0 2px}
+.mini{font-size:12px;color:var(--accent);cursor:pointer;background:none;border:none;padding:0 8px 0 0;font-weight:400}
+.mini:hover{text-decoration:underline}
+.cfg-num{width:78px;padding:6px 9px;border:1px solid var(--line);border-radius:8px;font-size:14px;color:var(--ink)}
+.cfg-tip{font-size:12px;color:var(--muted);margin-top:5px}
+.notice{background:var(--accent-soft);border:1px solid #c7d8f9;border-radius:10px;
+  padding:10px 14px;font-size:13px;color:#1e40af;margin-bottom:16px}
+.explain{color:#374151}
+/* ---- 公式排版：保证数学符号与中文正文基线一致、不被裁切 ---- */
+.qtext{line-height:2}
+.opt{line-height:1.95}
+.feedback{line-height:1.9}
+.qtext .katex,.opt .katex,.explain .katex,.rx .katex{font-size:1.04em}
+.katex-display{margin:.4em 0;overflow-x:auto;overflow-y:hidden}
+.opt .katex-display{margin:0}
+/* ---- 图形题干 ---- */
+.qfig{margin:2px 0 18px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:#fbfcfe}
+.qfig svg{width:100%;height:auto;display:block}
+.qfig .fig-box{position:relative}
+.fig-ov{position:absolute;inset:0;pointer-events:none}
+.fig-lb{position:absolute;white-space:nowrap;line-height:1;transform:translate(-50%,-50%)}
+.fig-lb .katex{font-size:1em}
+.qfig-cap{font-size:12px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:#f7f9fc}
+.tag-fig{background:#eef2ff;color:#4338ca}
+/* ---- 讲解浮层 ---- */
+#tutorFab{position:fixed;right:22px;bottom:22px;z-index:60;border:none;border-radius:28px;
+  padding:13px 20px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;
+  cursor:pointer;box-shadow:0 6px 20px rgba(37,99,235,.32)}
+#tutorFab:hover{background:#1d4ed8}
+#tutorPanel{position:fixed;right:22px;bottom:22px;width:370px;max-width:calc(100vw - 32px);
+  height:540px;max-height:calc(100vh - 44px);z-index:61;background:#fff;border:1px solid var(--line);
+  border-radius:14px;box-shadow:0 12px 36px rgba(15,23,42,.18);display:none;flex-direction:column;overflow:hidden}
+#tutorPanel.open{display:flex}
+.tutor-hd{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid var(--line);
+  background:#f8fafc;font-size:13px;font-weight:700}
+.tutor-hd .sp{flex:1}
+.tutor-hd button{border:none;background:none;cursor:pointer;color:var(--muted);font-size:16px;padding:0 3px}
+.tutor-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:12px;background:#eef2ff;color:#4338ca}
+.tutor-badge.ai{background:#e7f6ec;color:#15803d}
+.tutor-log{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;background:#fafbfd}
+.msg{max-width:92%;font-size:13px;line-height:1.7;padding:9px 12px;border-radius:11px;white-space:pre-wrap;word-break:break-word}
+.msg.me{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:3px}
+.msg.ai{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:3px}
+.msg.sys{align-self:center;background:transparent;color:var(--muted);font-size:11.5px;padding:2px}
+.msg .katex{font-size:1em}
+.tutor-quick{display:flex;flex-wrap:wrap;gap:6px;padding:9px 11px;border-top:1px solid var(--line);background:#fff}
+.tutor-quick button{font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:16px;
+  background:#fff;color:var(--ink);cursor:pointer}
+.tutor-quick button:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.tutor-in{display:flex;gap:8px;padding:9px 11px;border-top:1px solid var(--line);background:#fff}
+.tutor-in input{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:13px;outline:none}
+.tutor-in input:focus{border-color:var(--accent)}
+.tutor-in button{border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:13px;
+  font-weight:600;padding:0 14px;cursor:pointer}
+.tutor-set{padding:10px 12px;border-top:1px solid var(--line);background:#f8fafc;font-size:12px}
+.tutor-set label{display:block;color:var(--muted);margin:6px 0 3px;font-size:11.5px}
+.tutor-set input{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:12px}
+.tutor-set .row{display:flex;gap:6px;margin-top:8px}
+.tutor-set .row button{flex:1;border:1px solid var(--line);border-radius:7px;background:#fff;
+  padding:6px;font-size:12px;cursor:pointer;color:var(--ink)}
+.tutor-set .hint{color:var(--muted);font-size:11px;line-height:1.5;margin-top:7px}
+.typing{color:var(--muted);font-size:12px}
+/* 宽屏下把题目区让出右侧空间，讲解面板真正「在旁边」，不压住图形 */
+@media (min-width:1120px){
+  body.tutor-open .wrap{margin-left:0;margin-right:410px}
+}
+/* ---- 公式字体：Times New Roman（教材/论文惯例）----
+   只替换 KaTeX 的字母字体 KaTeX_Main / KaTeX_Math；
+   积分号、求和号、大括号、根号、花体等符号仍由 op-symbol / delimsizing / mathcal
+   专用符号字体绘制。实测把 op-symbol.large-op 换成 STIX / Times 后，∫ 会退化成
+   普通小号字形、上下限因按原字形宽度定位而错位甚至缺字，所以这里不替换。
+   数学排版的通行做法就是「Times 字母 + 专用数学符号字体」。
+   定积分统一用 \int\limits，让 −∞ / ∞ 正上正下居中，避免侧置显得歪斜。
+   拉丁与数字走 Times New Roman，希腊及数学符号缺字时退回同为 Times 风格的 STIX。 */
+.katex{font-family:"Times New Roman","Times",STIXGeneral,STIXTwoText,KaTeX_Main,serif}
+.katex .mathnormal,
+.katex .mathit,
+.katex .mathrm,
+.katex .textrm,
+.katex .text,
+.katex .mathbf,
+.katex .boldsymbol,
+.katex .mainrm{
+  font-family:"Times New Roman","Times",STIXGeneral,STIXTwoText,KaTeX_Main,serif !important;
+}
+.katex .mathnormal,.katex .mathit,.katex .boldsymbol{font-style:italic}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ========== 首页 ========== -->
+  <div id="screen-home">
+    <h1>信号与系统 · 诊断式学习小模型</h1>
+    <div class="sub">郑君里《信号与系统》(第三版) 第 1–4 章演示版 · 测 → 诊断 → 补弱 → 再测</div>
+    <div class="notice">
+      这是用于验证效果的最小原型：15 个知识点、39 个参数化题模（31 文字 + 8 图形），只覆盖第 1–4 章。
+      每轮按下方配置即时生成新题（数值、符号、选项顺序都会变化），不再使用固定题目列表。
+      完成诊断后给出薄弱点分析、前置依赖检查和学习资料，并可针对薄弱点再练一轮。数据仅保存在本机浏览器中。
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:10px">出题配置 <span style="font-size:12px;font-weight:400;color:var(--muted)">每轮即时生成，配置自动记忆</span></h3>
+      <div class="cfg-row">
+        <div class="cfg-col">
+          <span class="cfg-label">题型</span>
+          <div class="chips" id="cfg-types"></div>
+          <div class="cfg-tip" style="margin-top:18px;line-height:1.75">可多选。每轮按所选配置即时生成新题，数值、符号、图形参数与选项顺序都会变化；配置会自动记住。</div>
+        </div>
+        <div class="cfg-col" style="flex:0 0 170px;min-width:170px">
+          <span class="cfg-label">难度</span>
+          <div class="chips" id="cfg-diffs"></div>
+          <div style="margin-top:14px">
+            <span class="cfg-label">题目数量</span>
+            <input class="cfg-num" id="cfg-count" type="number" min="3" max="30" value="10">
+            <div class="cfg-tip">3–30 题 / 轮</div>
+          </div>
+          <div style="margin-top:12px">
+            <label class="chip"><input type="checkbox" id="cfg-fig" checked><span>含图形题</span></label>
+            <div class="cfg-tip">波形 / 频谱 / 框图 / 零极点</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <span class="cfg-label">知识点范围
+          <button class="mini" onclick="cfgAll()">全选</button>
+          <button class="mini" onclick="cfgNone()">全不选</button>
+          <button class="mini" onclick="cfgWeak()">仅薄弱点</button>
+        </span>
+        <div class="chips" id="cfg-kps"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:8px">它怎么工作</h3>
+      <p style="font-size:14px;color:#374151">
+        ① 按配置生成一轮新题（可随时结束）→
+        ② 系统按知识点统计掌握度，标记薄弱点 →
+        ③ 检查薄弱点的<b>前置依赖</b>（比如「卷积定理」薄弱时，先看「卷积积分」是否也没掌握，从根上补）→
+        ④ 给出每个薄弱点的学习资料 →
+        ⑤ 点击「再练一轮薄弱点」按薄弱范围再生成一批新题，完成迭代闭环。<br>
+        ⑥ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、追问错因，逐步展开而不直接剧透答案。
+      </p>
+      <div style="margin-top:20px">
+        <button class="btn btn-primary" onclick="startQuiz()">开始诊断</button>
+        <button class="btn btn-ghost" onclick="resetAll()">清空记录</button>
+        <button class="btn btn-ghost" onclick="toggleAiSet()">AI 讲解设置</button>
+      </div>
+      <div id="ai-set" style="display:none;margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:10px;background:#f8fafc">
+        <div style="font-size:13px;font-weight:700;margin-bottom:6px">接入大模型（可选，不填则使用内置离线讲解）</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px">
+          填一个 OpenAI 兼容的 <code>/v1/chat/completions</code> 地址即可。密钥仅保存在本机浏览器，
+          请只在可信设备上填写，不要用生产密钥。
+        </div>
+        <label style="display:block;font-size:12px;color:var(--muted);margin:6px 0 3px">接口地址</label>
+        <input id="ai-endpoint" style="width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:12px" placeholder="https://…/v1/chat/completions">
+        <label style="display:block;font-size:12px;color:var(--muted);margin:6px 0 3px">API Key</label>
+        <input id="ai-key" type="password" style="width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:12px" placeholder="sk-…">
+        <label style="display:block;font-size:12px;color:var(--muted);margin:6px 0 3px">模型名</label>
+        <input id="ai-model" style="width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:12px" placeholder="例如 gpt-4o-mini">
+        <div style="margin-top:10px">
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:13px" onclick="saveAiCfg()">保存</button>
+          <button class="btn btn-ghost" style="padding:7px 14px;font-size:13px" onclick="testAiCfg()">测试连接</button>
+          <span id="ai-status" style="font-size:12px;color:var(--muted);margin-left:8px"></span>
+        </div>
+      </div>
+    </div>
+    <div id="home-history"></div>
+  </div>
+
+  <!-- ========== 做题 ========== -->
+  <div id="screen-quiz" style="display:none">
+    <div class="sub" id="quiz-title">诊断测试</div>
+    <div class="pbar"><i id="qbar" style="width:0%"></i></div>
+    <div class="card">
+      <div id="qmeta"></div>
+      <div class="qfig" id="qfig" style="display:none"></div>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="qopts"></div>
+      <div class="feedback" id="qfb"></div>
+      <div style="margin-top:20px">
+        <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" style="display:none">下一题</button>
+        <button class="btn btn-ghost" onclick="endQuiz(true)">结束并查看诊断报告</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== 报告 ========== -->
+  <div id="screen-report" style="display:none">
+    <h1>诊断报告</h1>
+    <div class="sub" id="report-sub"></div>
+    <div id="report-body"></div>
+  </div>
+
+</div>
+
+<!-- ========== 讲解浮层（做题页可用） ========== -->
+<button id="tutorFab" style="display:none" onclick="toggleTutor()">问一问 · 边做边学</button>
+<div id="tutorPanel">
+  <div class="tutor-hd">
+    <span>讲解助手</span>
+    <span class="tutor-badge" id="tutor-badge">内置离线讲解</span>
+    <span class="sp"></span>
+    <button onclick="toggleTutorSet()" title="AI 设置">⚙</button>
+    <button onclick="tutorReset()" title="清空对话">↺</button>
+    <button onclick="toggleTutor()" title="收起">×</button>
+  </div>
+  <div class="tutor-log" id="tutor-log"></div>
+  <div class="tutor-quick" id="tutor-quick"></div>
+  <div class="tutor-in">
+    <input id="tutor-input" placeholder="输入你的问题，回车发送" onkeydown="if(event.key==='Enter')tutorSend()">
+    <button onclick="tutorSend()">发送</button>
+  </div>
+  <div class="tutor-set" id="tutor-set" style="display:none">
+    <label>接口地址</label><input id="tutor-ep" placeholder="https://…/v1/chat/completions">
+    <label>API Key</label><input id="tutor-key" type="password" placeholder="sk-…">
+    <label>模型名</label><input id="tutor-model" placeholder="gpt-4o-mini">
+    <div class="row"><button onclick="tutorSaveAi()">保存并启用</button><button onclick="tutorUseLocal()">改用内置讲解</button></div>
+    <div class="hint">密钥只存本机浏览器，请求直接发到你填的接口。不填就一直用内置讲解。</div>
+  </div>
+</div>
+
+<script>
+/* ================= 知识点图谱（第 1–4 章） ================= */
+const CHAPS = {1:'第一章 绪论', 2:'第二章 连续时间系统的时域分析',
+               3:'第三章 傅里叶变换', 4:'第四章 拉普拉斯变换与 s 域分析'};
+
+const KPS = [
+ {id:'k01', ch:1, name:'信号分类与典型信号', prereq:[],
+  res:[['B站搜索：信号与系统 信号的分类','https://search.bilibili.com/all?keyword=信号与系统%20信号的分类']]},
+ {id:'k02', ch:2, name:'冲激函数及其性质', prereq:['k01'],
+  res:[['B站搜索：单位冲激函数 性质 采样性质','https://search.bilibili.com/all?keyword=信号与系统%20单位冲激函数性质']]},
+ {id:'k03', ch:2, name:'系统的线性、时不变性判断', prereq:['k01'],
+  res:[['B站搜索：线性时不变系统 判断','https://search.bilibili.com/all?keyword=信号与系统%20线性时不变系统判断']]},
+ {id:'k04', ch:2, name:'冲激响应与阶跃响应', prereq:['k02','k03'],
+  res:[['B站搜索：冲激响应 阶跃响应 关系','https://search.bilibili.com/all?keyword=信号与系统%20冲激响应%20阶跃响应']]},
+ {id:'k05', ch:2, name:'零输入响应与零状态响应', prereq:['k03'],
+  res:[['B站搜索：零输入响应 零状态响应','https://search.bilibili.com/all?keyword=信号与系统%20零输入响应%20零状态响应']]},
+ {id:'k06', ch:2, name:'卷积积分', prereq:['k04'],
+  res:[['B站搜索：卷积积分 图解法','https://search.bilibili.com/all?keyword=信号与系统%20卷积积分%20图解法']]},
+ {id:'k07', ch:3, name:'傅里叶级数与周期信号频谱', prereq:['k01'],
+  res:[['B站搜索：傅里叶级数 频谱 离散','https://search.bilibili.com/all?keyword=信号与系统%20傅里叶级数%20周期信号频谱']]},
+ {id:'k08', ch:3, name:'傅里叶变换与频谱', prereq:['k07'],
+  res:[['B站搜索：傅里叶变换 对 常用变换对','https://search.bilibili.com/all?keyword=信号与系统%20傅里叶变换%20常用变换对']]},
+ {id:'k09', ch:3, name:'傅里叶变换的性质（时移/尺度/频移）', prereq:['k08'],
+  res:[['B站搜索：傅里叶变换性质 时移 尺度','https://search.bilibili.com/all?keyword=信号与系统%20傅里叶变换性质']]},
+ {id:'k10', ch:3, name:'卷积定理与频域分析', prereq:['k08','k06'],
+  res:[['B站搜索：卷积定理 时域卷积频域相乘','https://search.bilibili.com/all?keyword=信号与系统%20卷积定理']]},
+ {id:'k11', ch:3, name:'抽样定理与混叠', prereq:['k08'],
+  res:[['B站搜索：抽样定理 奈奎斯特','https://search.bilibili.com/all?keyword=信号与系统%20抽样定理']]},
+ {id:'k12', ch:4, name:'拉普拉斯变换与收敛域', prereq:['k01'],
+  res:[['B站搜索：拉普拉斯变换 收敛域','https://search.bilibili.com/all?keyword=信号与系统%20拉普拉斯变换%20收敛域']]},
+ {id:'k13', ch:4, name:'拉氏变换的性质（微分/时移/终值）', prereq:['k12'],
+  res:[['B站搜索：拉普拉斯变换性质 微分定理','https://search.bilibili.com/all?keyword=信号与系统%20拉普拉斯变换性质']]},
+ {id:'k14', ch:4, name:'拉氏反变换与部分分式法', prereq:['k12'],
+  res:[['B站搜索：拉氏反变换 部分分式','https://search.bilibili.com/all?keyword=信号与系统%20拉氏反变换%20部分分式']]},
+ {id:'k15', ch:4, name:'系统函数与稳定性', prereq:['k14','k05'],
+  res:[['B站搜索：系统函数 极点 稳定性','https://search.bilibili.com/all?keyword=信号与系统%20系统函数%20稳定性']]},
+];
+
+/* ================= 参数化图形题干（内联 SVG，零外部依赖） ================= */
+/* 图形随题目参数实时绘制：脉宽、周期、极点位置都跟着随机数变。
+   图内只标几何量（0、t、τ、T、ω、×、○），公式一律留给正文的 KaTeX，避免两套符号混排。 */
+
+const FC={line:'#2563eb',axis:'#94a3b8',grid:'#e9eef6',txt:'#475569',muted:'#94a3b8',
+          red:'#dc2626',ok:'#16a34a',fill:'rgba(37,99,235,.10)',warn:'rgba(220,38,38,.14)'};
+const FF='font-family="-apple-system,PingFang SC,Microsoft YaHei,sans-serif"';
+
+function svgWrap(inner){
+  return '<div class="fig-box">'+
+    '<svg viewBox="0 0 440 190" xmlns="http://www.w3.org/2000/svg" role="img" '+
+    'aria-label="题目示意图" style="width:100%;height:auto;display:block">'+
+    '<rect x="0" y="0" width="440" height="190" fill="#fbfcfe" rx="8"/>'+inner+'</svg>'+
+    '<div class="fig-ov"></div></div>';
+}
+function axes(xl,yl,y0){
+  y0=y0||112;
+  return '<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">'+
+    '<path d="M0,0 L7,3 L0,6" fill="none" stroke="'+FC.axis+'" stroke-width="1.3"/></marker></defs>'+
+    '<line x1="56" y1="'+y0+'" x2="418" y2="'+y0+'" stroke="'+FC.axis+'" stroke-width="1.3" marker-end="url(#arw)"/>'+
+    '<line x1="62" y1="170" x2="62" y2="18" stroke="'+FC.axis+'" stroke-width="1.3" marker-end="url(#arw)"/>'+
+    label(420,y0+16,xl,FC.txt,12)+label(36,24,yl,FC.txt,12)+label(50,y0+14,'0',FC.muted,10);
+}
+/* 图内数学标注：生成期只写 LaTeX，渲染期由 renderFigTex() 换成 KaTeX 覆盖层，
+   与正文共用一套数学字体；不再使用 Unicode 上下标或系统字体的变量字母。 */
+function escAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+  .replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function label(x,y,tex,color,size){
+  return '<text x="'+x+'" y="'+y+'" font-size="'+(size||11)+'" '+FF+
+    ' fill="'+(color||FC.txt)+'" text-anchor="middle" data-tex="'+escAttr(tex)+'">'+
+    deTex('\\('+tex+'\\)')+'</text>';
+}
+/* 纯中文/几何说明不是数学式，保留普通文字 */
+function plainLabel(x,y,s,color,size){ return '<text x="'+x+'" y="'+y+'" font-size="'+(size||11)+'" '+FF+
+  ' fill="'+(color||FC.txt)+'" text-anchor="middle">'+s+'</text>'; }
+function poly(pts,extra){ return '<polyline points="'+pts.join(' ')+'" fill="none" stroke="'+FC.line+
+  '" stroke-width="2.4" stroke-linejoin="round" '+(extra||'')+'/>'; }
+function dash(x1,y1,x2,y2,color){ return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+
+  '" stroke="'+(color||FC.muted)+'" stroke-width="1.2" stroke-dasharray="4 4"/>'; }
+
+/* ---- 波形 ---- */
+function figWave(kind,p){
+  p=p||{}; const y0=112, x0=62, scale=p.scale||46, A=p.A||2;
+  let body='';
+  const h=Math.min(72,A*24);
+  if(kind==='rect'){
+    const w=Math.max(30,Math.min(300,(p.tau||2)*scale));
+    body=poly([[x0,y0],[x0,y0-h],[x0+w,y0-h],[x0+w,y0],[410,y0]]);
+    body+='<rect x="'+x0+'" y="'+(y0-h)+'" width="'+w+'" height="'+h+'" fill="'+FC.fill+'"/>';
+    body+=dash(x0+w,y0-h,x0+w,y0);
+    body+=label(x0+w/2,y0-h-8,'\\tau','#1e40af',12);
+    body+=label(x0+w+18,y0+16,'\\tau','#94a3b8',10);
+    body+=label(150,y0-h/2+4,'A','#1e40af',11);
+  } else if(kind==='exp'){
+    const a=p.a||2, pts=[];
+    for(let i=0;i<=70;i++){ const t=i/70*7; pts.push([x0+t*scale,y0-A*24*Math.exp(-a*t/2)]); }
+    body=poly(pts);
+    body+=dash(x0,y0-A*24,410,y0-A*24);
+    body+=label(x0+128,y0-A*24-8,'A','#1e40af',11);
+    body+=plainLabel(300,y0-16,'指数衰减','#94a3b8',11);
+  } else if(kind==='step'){
+    body=poly([[x0,y0],[x0,y0-h],[410,y0-h]]);
+    body+='<rect x="'+x0+'" y="'+(y0-h)+'" width="348" height="'+h+'" fill="'+FC.fill+'"/>';
+    body+=label(x0+70,y0-h-8,'A\\,u(t)','#1e40af',11);
+  } else if(kind==='sine'){
+    const pts=[]; for(let i=0;i<=160;i++){ const t=i/160*7;
+      pts.push([x0+t*scale,y0-34*Math.sin(2*Math.PI*t/(p.T||2))]); }
+    body=poly(pts);
+    const T=(p.T||2)*scale;
+    body+=dash(x0+T,y0-42,x0+T,y0+42);
+    body+=label(x0+T/2,y0-52,'T','#1e40af',12);
+  } else if(kind==='impulse'){
+    const x=x0+(p.t0||2)*scale;
+    body='<line x1="'+x+'" y1="'+y0+'" x2="'+x+'" y2="'+(y0-64)+
+      '" stroke="'+FC.red+'" stroke-width="2.6" marker-end="url(#arw)"/>';
+    body+='<polygon points="'+x+','+(y0-70)+' '+(x-5)+','+(y0-60)+' '+(x+5)+','+(y0-60)+'" fill="'+FC.red+'"/>';
+    body+=plainLabel(x,y0-78,'强度 '+(p.w||1),'#dc2626',11);
+    body+=label(x,y0+18,'t_0='+(p.t0||2),'#94a3b8',10);
+  } else if(kind==='train'){
+    const T=(p.T||2)*scale;
+    for(let x=x0+18;x<400;x+=T){
+      body+='<line x1="'+x+'" y1="'+y0+'" x2="'+x+'" y2="'+(y0-52)+
+        '" stroke="'+FC.line+'" stroke-width="2.4"/>';
+      body+='<polygon points="'+x+','+(y0-58)+' '+(x-4)+','+(y0-48)+' '+(x+4)+','+(y0-48)+'" fill="'+FC.line+'"/>';
+    }
+    body+=dash(x0+18,y0-64,x0+18+T,y0-64);
+    body+=label(x0+18+T/2,y0-70,'T','#1e40af',11);
+  }
+  return svgWrap(axes('t','f(t)',y0)+body);
+}
+
+/* ---- 频谱 ---- */
+function figSpec(kind,p){
+  p=p||{}; const y0=140, x0=62, cx=236;
+  let body='';
+  if(kind==='lines'){
+    const step=Math.max(26,Math.min(56,(p.step||60)));  /* 上限保证最外侧谱线仍在 440 宽画布内 */
+    const mags=[62,40,27,18];
+    for(let k=-3;k<=3;k++){
+      const x=cx+k*step, m=mags[Math.abs(k)];
+      body+='<line x1="'+x+'" y1="'+y0+'" x2="'+x+'" y2="'+(y0-m)+
+        '" stroke="'+FC.line+'" stroke-width="3"/>';
+      body+='<circle cx="'+x+'" cy="'+(y0-m)+'" r="3" fill="'+FC.line+'"/>';
+    }
+    body+=dash(cx+step,y0-72,cx+2*step,y0-72,'#1e40af');
+    body+=label(cx+step*1.5,y0-78,(p.w1? '\\omega_1='+p.w1 : '\\omega_1'),'#1e40af',11);
+    body+=label(cx,y0+16,'0',FC.muted,10);
+  } else if(kind==='sa'){
+    const pts=[]; const w=p.w||70;
+    for(let i=-140;i<=140;i+=2){
+      const u=i/w, v=Math.abs(u)<0.001?1:Math.sin(Math.PI*u)/(Math.PI*u);
+      pts.push([cx+i,y0-72*v]);
+    }
+    body=poly(pts);
+    body+='<rect x="'+cx+'" y="'+(y0-72)+'" width="140" height="72" fill="'+FC.fill+'"/>';
+    body+=dash(cx+w,y0-80,cx+w,y0+8,FC.red);
+    body+=dash(cx-w,y0-80,cx-w,y0+8,FC.red);
+    body+=label(cx+w,y0+22,'2\\pi/\\tau','#dc2626',10);
+    body+=label(cx-w,y0+22,'-2\\pi/\\tau','#dc2626',10);
+    body+=label(cx,y0-82,'\\tau','#1e40af',11);
+  } else if(kind==='alias'){
+    const d=p.d||140, centers=[cx-d/2,cx+d/2], half=85;
+    const tri=(c)=>{ const pts=[[c-half,y0],[c,y0-66],[c+half,y0]];
+      return '<polyline points="'+pts.map(a=>a.join(',')).join(' ')+'" fill="'+FC.fill+'" stroke="'+FC.line+'" stroke-width="2"/>'; };
+    body=tri(centers[0])+tri(centers[1]);
+    const overlapL=centers[1]-half, overlapR=centers[0]+half;
+    if(overlapR>overlapL) body+='<rect x="'+overlapL+'" y="'+(y0-66)+'" width="'+(overlapR-overlapL)+
+      '" height="66" fill="'+FC.warn+'"/>';
+    body+=label(centers[0],y0+18,'-f_s','#94a3b8',10)+label(cx,y0+18,'0',FC.muted,10)+
+          label(centers[1],y0+18,'f_s','#94a3b8',10);
+    body+=plainLabel(cx,32,'频谱周期延拓','#475569',12);
+    if(overlapR>overlapL) body+=plainLabel(cx,50,'重叠 = 混叠','#dc2626',11);
+  }
+  return svgWrap(axes('\\omega','F(\\omega)',y0)+body);
+}
+
+/* ---- 框图 ---- */
+function figBlock(kind,p){
+  p=p||{};
+  let b='';
+  const wire=(x1,x2,y)=>'<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" stroke="'+FC.txt+'" stroke-width="1.6" marker-end="url(#arw)"/>';
+  const box=(x,tex,w)=>'<rect x="'+x+'" y="72" width="'+(w||104)+'" height="52" rx="6" fill="#fff" stroke="'+FC.line+'" stroke-width="1.8"/>'+
+    '<text x="'+(x+(w||104)/2)+'" y="103" '+FF+' font-size="14" fill="'+FC.txt+'" text-anchor="middle" data-tex="'+escAttr(tex)+'">'+deTex('\\('+tex+'\\)')+'</text>';
+  const y=98;
+  if(kind==='gain'){
+    b=wire(30,88,y)+box(88,'K='+(p.a||2))+wire(192,410,y)+
+      label(45,86,'x(t)',FC.txt,13)+label(392,86,'y(t)',FC.txt,13);
+  } else if(kind==='delay'){
+    b=wire(30,76,y)+box(76,'t_0='+(p.t0||2),116)+wire(192,410,y)+
+      label(45,86,'x(t)',FC.txt,13)+label(392,86,'y(t)',FC.txt,13);
+  } else if(kind==='lti'){
+    b=wire(30,80,y)+box(80,'h(t)',120)+wire(200,410,y)+
+      label(45,86,'x(t)',FC.txt,13)+label(392,86,'y(t)',FC.txt,13)+
+      plainLabel(140,150,'零状态系统','#94a3b8',11);
+  } else if(kind==='feedback'){
+    b=wire(30,72,y)+
+      '<circle cx="84" cy="'+y+'" r="14" fill="#fff" stroke="'+FC.line+'" stroke-width="1.8"/>'+
+      '<text x="84" y="'+(y+5)+'" '+FF+' font-size="15" fill="'+FC.txt+'" text-anchor="middle">+</text>'+
+      wire(98,150,y)+box(150,'\\dfrac{1}{s+'+(p.a||2)+'}',120)+wire(270,410,y)+
+      '<line x1="340" y1="'+y+'" x2="340" y2="158" stroke="'+FC.txt+'" stroke-width="1.5"/>'+
+      '<line x1="340" y1="158" x2="84" y2="158" stroke="'+FC.txt+'" stroke-width="1.5"/>'+
+      '<line x1="84" y1="158" x2="84" y2="112" stroke="'+FC.txt+'" stroke-width="1.5" marker-end="url(#arw)"/>'+
+      plainLabel(84,150,'−',FC.red,16)+
+      label(45,86,'x(t)',FC.txt,13)+label(395,86,'y(t)',FC.txt,13)+
+      plainLabel(212,172,'负反馈','#94a3b8',11);
+  } else if(kind==='tvar'){
+    b=wire(30,84,y)+box(84,'t',120)+wire(204,410,y)+
+      label(45,86,'x(t)',FC.txt,13)+label(392,86,'y(t)',FC.txt,13)+
+      plainLabel(144,150,'系数含时间变量','#94a3b8',11);
+  } else if(kind==='nonlin'){
+    b=wire(30,78,y)+box(78,'x^2(t)',128)+wire(206,410,y)+
+      label(45,86,'x(t)',FC.txt,13)+label(392,86,'y(t)',FC.txt,13)+
+      plainLabel(142,150,'含平方项','#94a3b8',11);
+  }
+  return svgWrap('<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">'+
+    '<path d="M0,0 L7,3 L0,6" fill="none" stroke="'+FC.txt+'" stroke-width="1.3"/></marker></defs>'+b);
+}
+
+/* ---- s 平面零极点 ---- */
+function figPoleZero(poles,zeros,rocRight){
+  const cx=236,y0=98, sx=52, sy=42;
+  let b='<line x1="60" y1="'+y0+'" x2="416" y2="'+y0+'" stroke="'+FC.axis+'" stroke-width="1.3" marker-end="url(#arw)"/>'+
+    '<line x1="'+cx+'" y1="172" x2="'+cx+'" y2="20" stroke="'+FC.axis+'" stroke-width="1.3" marker-end="url(#arw)"/>'+
+    label(385,y0-8,'\\mathrm{Re}(s)',FC.txt,12)+
+    label(cx+30,22,'\\mathrm{Im}(s)',FC.txt,12)+
+    '<defs><marker id="arw" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">'+
+    '<path d="M0,0 L7,3 L0,6" fill="none" stroke="'+FC.axis+'" stroke-width="1.3"/></marker></defs>';
+  (poles||[]).forEach(pp=>{
+    const x=cx+pp[0]*sx, y=y0-pp[1]*sy;
+    b+='<line x1="'+(x-7)+'" y1="'+(y-7)+'" x2="'+(x+7)+'" y2="'+(y+7)+'" stroke="'+FC.red+'" stroke-width="2.6"/>'+
+       '<line x1="'+(x-7)+'" y1="'+(y+7)+'" x2="'+(x+7)+'" y2="'+(y-7)+'" stroke="'+FC.red+'" stroke-width="2.6"/>';
+  });
+  (zeros||[]).forEach(zz=>{
+    const x=cx+zz[0]*sx, y=y0-zz[1]*sy;
+    b+='<circle cx="'+x+'" cy="'+y+'" r="7" fill="#fff" stroke="'+FC.line+'" stroke-width="2.4"/>';
+  });
+  b+=label(cx+16,y0+16,'0',FC.muted,10);
+  if(rocRight!==null&&rocRight!==undefined){
+    const x=rocRight===true?cx+1:cx-1;
+    b+='<rect x="'+(rocRight===true?x:cx-178)+'" y="26" width="176" height="140" fill="rgba(22,163,74,.08)"/>'+
+       plainLabel(rocRight===true?cx+90:cx-90,40,'收敛域',FC.ok,11);
+  }
+  b+=plainLabel(330,170,'× 极点　○ 零点','#94a3b8',11);
+  return svgWrap(b);
+}
+
+/* 卷积结果示意图：两个阶跃卷积得到从 t=s 开始的斜坡 */
+function figConvRamp(s){
+  const y0=142,x0=62,x1=x0+(s||3)*44;
+  const pts=[[x0,y0],[x1,y0],[410,y0-72]];
+  let b=axes('t','y(t)',y0)+poly(pts);
+  b+='<rect x="'+x1+'" y="'+(y0-72)+'" width="'+(410-x1)+'" height="72" fill="'+FC.fill+'"/>';
+  b+=dash(x1,y0-80,x1,y0+8,FC.red);
+  b+=label(x1,y0+20,'a+b='+s,FC.red,11);
+  b+=label(300,38,'r(t-a-b)',FC.txt,12);
+  return svgWrap(b);
+}
+
+function figIssues(s){
+  if(typeof s!=='string') return ['图形不是字符串'];
+  const t=s.trim();
+  if(!t.startsWith('<div class="fig-box">')||!t.endsWith('</div>')) return ['图形容器不完整'];
+  if(!/<svg[\s\S]*<\/svg>/.test(t)) return ['缺少 SVG 图形'];
+  if(/<script|on\w+\s*=|javascript:/i.test(t)) return ['图形含不安全内容'];
+  /* 图内公式同样要遵守正斜体规范 */
+  const texes=(t.match(/data-tex="[^"]*"/g)||[]);
+  for(const x of texes){
+    if(/e\^/.test(x)) return ['图内自然底 e 未用正体'];
+    if(/j\\omega/.test(x)) return ['图内虚数单位 j 未用正体'];
+    if(/dt|d\\tau/.test(x)) return ['图内微分算子 d 未用正体'];
+  }
+  return texes.length? [] : ['图形没有公式标注'];
+}
+
+
+/* ================= 生成式题库：题模 + 参数化生成 ================= */
+/* 符号规范（信号与系统）：所有数学一律用 M() 包进 \(...\)，禁止裸 LaTeX / Unicode 上下标混排。
+   Sa 抽样函数、Re、单位一律正体 \mathrm{}；虚数单位用 j；0^- / 0^+ 用上标；卷积用 *。 */
+
+const TYPES = {concept:'概念判断', calc:'计算求解', property:'性质应用', system:'系统判别'};
+
+/* 公式包装：运行时产出 \( ... \)，交给 KaTeX 渲染 */
+function M(tex){ return '\\('+tex+'\\)'; }
+
+/* ---------- 随机与格式化工具 ---------- */
+function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function ra(d){ return ri(1, 2+2*d); }
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ const t=a%b; a=b; b=t; } return a||1; }
+function fracTex(n,d){ const g=gcd(n,d); n/=g; d/=g; return d===1? ''+n : '\\dfrac{'+n+'}{'+d+'}'; }
+
+/* ---------- 题模表 ---------- */
+const TEMPLATES = [];
+function T(id,type,kp,label,gen){ TEMPLATES.push({id,type,kp,label,gen}); }
+
+/* k01 信号分类与典型信号 */
+T('t01','concept','k01','能量/功率信号判别', d=>{
+  const a=ra(d), A=ri(1,4);
+  return {q:'信号 '+M('f(t)='+(A>1?A:'')+'\\mathrm{e}^{-'+a+'t}u(t)')+' 属于：',
+    correct:'能量信号',
+    distractors:['功率信号','既是能量信号又是功率信号','既不是能量信号也不是功率信号'],
+    exp:'能量 '+M('E=\\int_0^{\\infty}A^2\\mathrm{e}^{-2at}\\mathrm{d}t=\\dfrac{A^2}{2a}='+fracTex(A*A,2*a)+'<\\infty')+'，平均功率为 0，故为能量信号。判别口诀：先算能量，有限即能量信号；能量无限再算功率。'};
+});
+const COPRIME=[[2,3],[2,5],[3,4],[3,5],[4,5],[2,7],[3,7],[4,7],[5,6],[5,7],[5,8],[3,8],[7,8],[5,9],[7,9],[2,9],[4,9]];
+T('t02','calc','k01','周期信号周期计算', d=>{
+  const mn=pick(COPRIME), m=mn[0], n=mn[1];
+  if(d===3 && Math.random()<0.45){
+    return {q:'信号 '+M('f(t)=\\sin('+m+'t)+\\cos(\\sqrt{2}\\,'+n+'t)')+' 的周期是：',
+      correct:'不是周期信号',
+      distractors:[M('2\\pi'),M('\\pi'),M('\\dfrac{2\\pi}{'+m+' }')],
+      exp:'两项角频率之比为 '+M(m+'/(\\sqrt{2}\\cdot '+n+')')+'，含无理数 '+M('\\sqrt{2}')+'，不可公度，故不存在公共周期。周期信号叠加后仍周期的前提是各分量周期可公度。'};
+  }
+  return {q:'信号 '+M('f(t)=\\sin('+m+'t)+\\cos('+n+'t)')+' 的周期是：',
+    correct:M('2\\pi'),
+    distractors:[M('\\dfrac{2\\pi}{'+m+' }'),M('\\dfrac{2\\pi}{'+n+' }'),'不是周期信号'],
+    exp:'两项周期分别为 '+M('2\\pi/'+m)+' 与 '+M('2\\pi/'+n)+'，角频率之比 '+M(m+':'+n)+' 为有理数，可公度；且二者互素，故最小公共周期为 '+M('2\\pi')+'。'};
+});
+
+/* k02 冲激函数 */
+const DELTA_A=[
+ {s:'2',coef:'\\dfrac{1}{2}',mul:'2'},
+ {s:'3',coef:'\\dfrac{1}{3}',mul:'3'},
+ {s:'-2',coef:'\\dfrac{1}{2}',mul:'-2'},
+ {s:'4',coef:'\\dfrac{1}{4}',mul:'4'},
+ {s:'\\frac{1}{2}',coef:'2',mul:'\\frac{1}{2}'}
+];
+T('t03','property','k02','冲激函数尺度性质', d=>{
+  const A=pick(DELTA_A);
+  return {q:M('\\delta('+A.s+'\\,t) ='),
+    correct:M(A.coef+'\\delta(t)'),
+    distractors:[M('\\delta(t)'),M(A.mul+'\\delta(t)'),M('\\delta(t-1)')],
+    exp:'尺度性质 '+M('\\delta(at)=\\dfrac{1}{|a|}\\delta(t)')+'。取 '+M('a='+A.s)+'，得 '+M('1/|a|='+A.coef)+'。注意 '+M('a<0')+' 时取绝对值，改变的是冲激强度而非位置。'};
+});
+T('t04','calc','k02','冲激函数采样性质', d=>{
+  const t0=ri(1,4), b=ri(2,8), p=pick([1,2]);
+  const f=p===1? '(t+'+b+')' : '(t^2+'+b+')';
+  const val=p===1? t0+b : t0*t0+b;
+  const uniq=[...new Set([b,t0,0,val+1,val-1,val+b+7].filter(x=>x!==val))].slice(0,3).map(String);
+  return {q:M('\\displaystyle\\int\\limits_{-\\infty}^{\\infty} '+f+'\\,\\delta(t-'+t0+')\\,\\mathrm{d}t ='),
+    correct:String(val), distractors:uniq,
+    exp:'采样性质 '+M('\\int f(t)\\delta(t-t_0)\\mathrm{d}t=f(t_0)')+'。取 '+M('t_0='+t0)+' 代入 '+M(f)+' 得 '+M(String(val))+'。常见错误是代 '+M('t=0')+' 得 '+M(String(b))+'，或直接把 '+M('t_0')+' 当答案。'};
+});
+
+/* k03 系统线性/时不变性 */
+T('t05','system','k03','系统线性/时不变性判别', d=>{
+  const a=ri(2,5), b=ri(1,4), t0=ri(1,4);
+  const S=[
+    {s:'y(t)=t\\,x(t)', lin:true, ti:false, e:'系数含 '+M('t')+'：输入延迟 '+M('t_0')+' 后输出为 '+M('t\\,x(t-t_0)')+'，而 '+M('y(t-t_0)=(t-t_0)x(t-t_0)')+'，不等，故时变；对 '+M('x')+' 仍是一次齐次，故线性。'},
+    {s:'y(t)='+a+'\\,x(t)+'+b, lin:false, ti:true, e:'含常数偏置 '+M(String(b))+'，'+M('y(0)='+b+'\\ne 0')+'，不满足齐次性，故非线性（仿射不等于线性）；系数不含 '+M('t')+'，故时不变。'},
+    {s:'y(t)=x('+a+'t)', lin:true, ti:false, e:'时域压缩：输入延迟得 '+M('x('+a+'t-t_0)')+'，而 '+M('y(t-t_0)=x('+a+'t-'+a+'t_0)')+'，不等，故时变；对 '+M('x')+' 无非线性运算，故线性。'},
+    {s:'y(t)=x^2(t)', lin:false, ti:true, e:'含 '+M('x')+' 的平方项，不满足叠加性，故非线性；表达式不含 '+M('t')+'，故时不变。'},
+    {s:'y(t)=|x(t)|', lin:false, ti:true, e:'取绝对值不满足齐次性（'+M('x')+' 取负时符号不跟随），故非线性；不含 '+M('t')+'，故时不变。'},
+    {s:'y(t)=x(t-'+t0+')', lin:true, ti:true, e:'纯延迟系统：既满足线性，输出也随输入同步延迟，故线性时不变。'},
+    {s:'y(t)=\\mathrm{e}^{'+a+'t}x(t)', lin:true, ti:false, e:'系数 '+M('\\mathrm{e}^{'+a+'t}')+' 含 '+M('t')+'，故时变；对 '+M('x')+' 仍是一次齐次，故线性。'},
+    {s:'y(t)='+a+'\\,x(t)', lin:true, ti:true, e:'常数倍增益：满足齐次与叠加，且不含 '+M('t')+'，是最简单的 LTI 系统。'}
+  ];
+  const o=pick(S), opts=['线性、时不变','线性、时变','非线性、时不变','非线性、时变'];
+  const correct=opts[(o.lin?0:2)+(o.ti?0:1)];
+  return {q:'系统 '+M(o.s)+' 是：', correct:correct, distractors:opts.filter(x=>x!==correct), exp:o.e};
+});
+T('t06','system','k03','选出线性时不变系统', d=>{
+  const a=ri(2,5), b=ri(1,4), t0=ri(1,3);
+  const opts=[M('y(t)='+a+'x(t)'),M('y(t)=t\\,x(t)'),M('y(t)=x^2(t)'),M('y(t)=x(t)+'+b)];
+  return {q:'下列系统中，属于线性时不变（LTI）系统的是：',
+    correct:opts[0], distractors:opts.slice(1),
+    exp:'只有 '+M(a+'x(t)')+' 是常数增益：满足齐次与叠加，且不含 '+M('t')+'。'+M('t\\,x(t)')+' 线性但时变；'+M('x^2(t)')+' 非线性；'+M('x(t)+'+b)+' 含常数偏置，非线性。纯延迟 '+M('x(t-t_0)')+'（本例 '+M('t_0='+t0)+'）同样是 LTI。'};
+});
+
+/* k04 冲激响应与阶跃响应 */
+T('t07','concept','k04','冲激响应/阶跃响应定义', d=>{
+  const a=ra(d), v=pick(['h','g']);
+  if(v==='h') return {q:'某 LTI 系统冲激响应为 '+M('h(t)=\\mathrm{e}^{-'+a+'t}u(t)')+'，则 '+M('h(t)')+' 是：',
+    correct:'系统对 '+M('\\delta(t)')+' 的零状态响应',
+    distractors:['系统对 '+M('\\delta(t)')+' 的全响应','系统对 '+M('u(t)')+' 的零状态响应','系统的自由响应'],
+    exp:'冲激响应 '+M('h(t)')+' 定义为初始状态为零、激励为 '+M('\\delta(t)')+' 时的响应。与阶跃响应 '+M('g(t)')+' 的关系：'+M('h(t)=\\dfrac{\\mathrm{d}g(t)}{\\mathrm{d}t}')+'，'+M('g(t)=\\int\\limits_{0^-}^{t}h(\\tau)\\mathrm{d}\\tau')+'。'};
+  return {q:'某系统（冲激响应 '+M('h(t)=\\mathrm{e}^{-'+a+'t}u(t)')+'）的阶跃响应 '+M('g(t)')+' 是：',
+    correct:'系统对 '+M('u(t)')+' 的零状态响应',
+    distractors:['系统对 '+M('\\delta(t)')+' 的零状态响应','系统的零输入响应','系统的全响应'],
+    exp:'阶跃响应 '+M('g(t)')+' 是激励为 '+M('u(t)')+' 时的零状态响应，'+M('g(t)=u(t)*h(t)=\\int\\limits_{0^-}^{t}h(\\tau)\\mathrm{d}\\tau')+'；本例 '+M('g(t)=\\dfrac{1-\\mathrm{e}^{-'+a+'t}}{'+a+'}')+'。'};
+});
+T('t08','calc','k04','由 h(t) 求阶跃响应', d=>{
+  const a=ra(d);
+  return {q:'某 LTI 系统的冲激响应 '+M('h(t)=\\mathrm{e}^{-'+a+'t}u(t)')+'，其阶跃响应 '+M('g(t) ='),
+    correct:M('\\dfrac{1}{'+a+'}(1-\\mathrm{e}^{-'+a+'t})u(t)'),
+    distractors:[M('\\mathrm{e}^{-'+a+'t}u(t)'),M('t\\,u(t)'),M('(1-\\mathrm{e}^{-'+a+'t})u(t)')],
+    exp:M('g(t)=\\int_0^{t}\\mathrm{e}^{-'+a+'\\tau}\\mathrm{d}\\tau=\\dfrac{1-\\mathrm{e}^{-'+a+'t}}{'+a+'}\\ (t\\ge 0)')+'。第三个选项是漏掉系数 '+M('1/'+a)+' 的典型错误；也可用 '+M('g(t)=u(t)*h(t)')+' 卷积得到。'};
+});
+
+/* k05 零输入/零状态响应 */
+T('t09','concept','k05','零输入/零状态响应概念', d=>{
+  const a=ra(d), b=a+ri(1,3), v=pick(['zi','zs']);
+  if(v==='zi') return {q:'某二阶系统特征根为 '+M('p_1=-'+a+',\\ p_2=-'+b)+'，其零输入响应由什么决定？',
+    correct:'仅由初始状态和系统特性决定',
+    distractors:['仅由激励决定','由激励和初始状态共同决定','由系统的冲激响应决定'],
+    exp:'零输入响应是激励为零、仅由初始状态产生的响应，形式由特征根（本例 '+M('-'+a)+'、'+M('-'+b)+'）决定、系数由初始条件定。它与冲激响应（对应零状态）是两条不同线索。'};
+  return {q:'某二阶系统特征根为 '+M('p_1=-'+a+',\\ p_2=-'+b)+'，其零状态响应由什么决定？',
+    correct:'仅由激励和系统特性决定',
+    distractors:['仅由初始状态决定','由激励和初始状态共同决定','由系统的自由响应决定'],
+    exp:'零状态响应是初始状态为零、仅由激励产生的响应，等于 '+M('x(t)*h(t)')+'。'};
+});
+T('t10','property','k05','零状态响应线性叠加', d=>{
+  let c1=ri(2,5), c2=ri(2,5); while(c2===c1) c2=ri(2,5);
+  return {q:'已知同一系统的零状态响应：激励 '+M('x_1')+' 时为 '+M('y_1')+'，激励 '+M('x_2')+' 时为 '+M('y_2')+'。则激励 '+M(c1+'x_1+'+c2+'x_2')+' 时的零状态响应为：',
+    correct:M(c1+'y_1+'+c2+'y_2'),
+    distractors:[M('y_1+y_2'),M((c1+c2)+'(y_1+y_2)'),M(c1+'y_1-'+c2+'y_2')],
+    exp:'零状态响应满足线性（齐次与叠加）：'+M(c1+'x_1\\to '+c1+'y_1')+'，'+M(c2+'x_2\\to '+c2+'y_2')+'，合起来即 '+M(c1+'y_1+'+c2+'y_2')+'。注意「零状态」三个字，若存在初始状态则不能直接叠加。'};
+});
+
+/* k06 卷积积分 */
+T('t11','calc','k06','阶跃信号卷积', d=>{
+  const a=ri(0,3), b=ri(0,3), s=a+b;
+  const L=a? 'u(t-'+a+')':'u(t)', R=b? 'u(t-'+b+')':'u(t)';
+  const correct=s? M('(t-'+s+')u(t-'+s+')') : M('t\\,u(t)');
+  const ds=s? [M('t\\,u(t)'),M('u(t-'+s+')'),M('\\dfrac{t^2}{2}u(t)')]
+             : [M('u(t)'),M('\\delta(t)'),M('\\dfrac{t^2}{2}u(t)')];
+  return {q:M(L+'*'+R+' ='), correct:correct, distractors:ds,
+    exp:'卷积积分区间为 '+M('['+a+',\\ t-'+b+']')+'，长度 '+M('t-'+s+'\\ (t\\ge '+s+')')+'，故结果为 '+correct+'。'+M('u(t)*u(t)=t\\,u(t)')+' 是 '+M('s=0')+' 的特例；'+M('\\dfrac{t^2}{2}u(t)')+' 是 '+M('u(t)*t\\,u(t)')+' 的结果，不要混淆。'};
+});
+T('t12','property','k06','与移位冲激卷积', d=>{
+  const t0=ri(1,6);
+  return {q:M('\\delta(t-'+t0+')*f(t) ='),
+    correct:M('f(t-'+t0+')'),
+    distractors:[M('f(t)'),M(t0+'f(t)'),M('f('+t0+'t)')],
+    exp:M('\\delta(t-t_0)*f(t)=f(t-t_0)')+'：与延迟冲激卷积等于把信号整体平移 '+M('t_0='+t0)+'。'+M('\\delta(t)')+' 是卷积的恒等元。图解法五步：换元、翻转、平移、相乘、积分。'};
+});
+
+/* k07 傅里叶级数与频谱 */
+T('t13','concept','k07','周期信号频谱特性', d=>{
+  const T0=ri(1,9);
+  return {q:'周期为 '+M('T='+T0+'\\,\\mathrm{ms}')+' 的周期矩形脉冲，其频谱具有：',
+    correct:'离散性、谐波性、收敛性',
+    distractors:['连续性、谐波性、收敛性','离散性、非谐波性、收敛性','只在直流处有一根谱线'],
+    exp:'周期信号频谱三条特性：离散性（谱线）、谐波性（谱线间隔 '+M('\\omega_1=\\dfrac{2\\pi}{T}=\\dfrac{2\\pi}{'+T0+'}\\,\\mathrm{rad/ms}')+'）、收敛性（幅度随谐波次数衰减）。非周期信号频谱才是连续的。'};
+});
+T('t14','concept','k07','吉布斯现象', d=>{
+  const A=ri(1,9);
+  return {q:'用有限项傅里叶级数逼近有间断点（跳变量 '+M('A='+A)+'）的周期信号，当 '+M('N\\to\\infty')+' 时，间断点附近的峰值振荡会：',
+    correct:'峰值约为跳变量的 9%，不消失',
+    distractors:['完全消失','峰值趋于无穷大','振荡变慢直至消失'],
+    exp:'吉布斯现象：项数增多时振荡越来越靠近间断点，但峰值始终约为跳变量的 '+M('8.95\\%')+'（本例约 '+M((A*0.0895).toFixed(2))+'），不消失。原因是傅里叶级数在间断点处按均方意义收敛，而非逐点收敛。'};
+});
+
+/* k08 傅里叶变换 */
+T('t15','calc','k08','常用傅里叶变换对', d=>{
+  const a=ra(d);
+  return {q:M('\\mathrm{e}^{-'+a+'t}u(t)')+' 的傅里叶变换是：',
+    correct:M('\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}'),
+    distractors:[M('\\dfrac{1}{'+a+'-\\mathrm{j}\\omega}'),M('\\dfrac{1}{'+a+'+\\omega}'),M('\\pi\\delta(\\omega)+\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}')],
+    exp:M('F(\\omega)=\\int_0^{\\infty}\\mathrm{e}^{-'+a+'t}\\mathrm{e}^{-\\mathrm{j}\\omega t}\\mathrm{d}t=\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}')+'。第四个选项是 '+M('u(t)')+' 的变换（含直流冲激项 '+M('\\pi\\delta(\\omega)')+'），两者常被对比：不带 '+M('u(t)')+' 截断就没有冲激项。'};
+});
+T('t16','concept','k08','傅里叶变换存在条件', d=>{
+  const a=ra(d);
+  return {q:'在判断 '+M('f(t)=\\mathrm{e}^{-'+a+'t}u(t)')+'、'+M('u(t)')+'、周期信号等是否存在傅里叶变换时，所用的充分条件是：',
+    correct:'信号绝对可积',
+    distractors:['信号能量有限','信号单调有界','信号具有周期性'],
+    exp:M('\\int\\limits_{-\\infty}^{\\infty}|f(t)|\\,\\mathrm{d}t<\\infty')+' 是充分条件而非必要条件：'+M('u(t)')+'、周期信号都不绝对可积，但引入冲激函数后仍有傅里叶变换。这是概念题的高频陷阱。'};
+});
+
+/* k09 傅里叶变换性质 */
+T('t17','property','k09','时移性质', d=>{
+  const t0=ri(1,6);
+  return {q:'若 '+M('f(t)\\leftrightarrow F(\\omega)')+'，则 '+M('f(t-'+t0+')')+' 的傅里叶变换是：',
+    correct:M('F(\\omega)\\mathrm{e}^{-j'+t0+'\\omega}'),
+    distractors:[M('F(\\omega)\\mathrm{e}^{j'+t0+'\\omega}'),M('F(\\omega-'+t0+')'),M('\\dfrac{1}{'+t0+'}F\\!\\left(\\dfrac{\\omega}{'+t0+'}\\right)')],
+    exp:'时移性质 '+M('f(t-t_0)\\leftrightarrow F(\\omega)\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+'，取 '+M('t_0='+t0)+'，只改相位不改幅度谱。最后一个选项是尺度性质的形式，注意区分「时域平移」与「时域展缩」。'};
+});
+T('t18','property','k09','尺度性质', d=>{
+  const a=ri(2,6);
+  return {q:'若 '+M('f(t)\\leftrightarrow F(\\omega)')+'，则 '+M('f('+a+'t)')+' 的傅里叶变换是：',
+    correct:M('\\dfrac{1}{'+a+'}F\\!\\left(\\dfrac{\\omega}{'+a+'}\\right)'),
+    distractors:[M('F\\!\\left(\\dfrac{\\omega}{'+a+'}\\right)'),M(a+'F('+a+'\\omega)'),M('\\dfrac{1}{'+a+'}F(\\omega)')],
+    exp:'尺度性质 '+M('f(at)\\leftrightarrow \\dfrac{1}{|a|}F(\\omega/a)')+'。时域压缩对应频域展宽、幅度压缩——这是带宽与脉宽成反比的根源。'};
+});
+
+/* k10 卷积定理与频域分析 */
+T('t19','property','k10','卷积定理', d=>{
+  const a=ra(d);
+  return {q:'若 '+M('y(t)=x(t)*h(t)')+'，其中 '+M('x(t)=\\mathrm{e}^{-'+a+'t}u(t)')+'，则 '+M('Y(\\omega)='),
+    correct:M('X(\\omega)H(\\omega)'),
+    distractors:[M('\\dfrac{1}{2\\pi}X(\\omega)*H(\\omega)'),M('X(\\omega)+H(\\omega)'),M('X(\\omega)/H(\\omega)')],
+    exp:'卷积定理：时域卷积对应频域相乘，'+M('f_1*f_2\\leftrightarrow F_1F_2')+'；对偶地，时域相乘对应频域卷积（带 '+M('1/2\\pi')+'）。它把「求零状态响应等于激励卷积 '+M('h(t)')+'」变成频域乘法，是频域分析法的核心。'};
+});
+T('t20','calc','k10','矩形脉冲频谱', d=>{
+  const tau=ri(2,6);
+  return {q:'宽度为 '+M('\\tau='+tau)+' 的矩形脉冲 '+M('G_\\tau(t)')+'，其频谱 '+M('F(\\omega)='),
+    correct:M(tau+'\\,\\mathrm{Sa}\\!\\left(\\dfrac{'+tau+'\\omega}{2}\\right)'),
+    distractors:[M('G_\\tau(\\omega)'),M('\\sum_{n}\\delta(\\omega-n\\omega_1)'),M('\\dfrac{1}{'+tau+'}\\,\\mathrm{Sa}(\\omega)')],
+    exp:M('G_\\tau(t)\\leftrightarrow \\tau\\,\\mathrm{Sa}\\!\\left(\\dfrac{\\omega\\tau}{2}\\right)')+'，其中 '+M('\\mathrm{Sa}(x)=\\dfrac{\\sin x}{x}')+' 为抽样函数。时域越窄（'+M('\\tau')+' 小）频谱第一个零点 '+M('\\omega=\\dfrac{2\\pi}{\\tau}=\\dfrac{2\\pi}{'+tau+' }')+' 越远、主瓣越宽——脉宽与带宽成反比的经典例证。'};
+});
+
+/* k11 抽样定理 */
+T('t21','calc','k11','奈奎斯特抽样频率', d=>{
+  const fm=ri(2,9);
+  return {q:'信号最高频率 '+M('f_m='+fm+'\\,\\mathrm{kHz}')+'，要能无失真恢复原信号，最低抽样频率是：',
+    correct:M((2*fm)+'\\,\\mathrm{kHz}'),
+    distractors:[M(fm+'\\,\\mathrm{kHz}'),M((fm+1)+'\\,\\mathrm{kHz}'),M((fm/2)+'\\,\\mathrm{kHz}')],
+    exp:'奈奎斯特抽样定理 '+M('f_s\\ge 2f_m=2\\times'+fm+'='+(2*fm)+'\\,\\mathrm{kHz}')+'。抽样后频谱以 '+M('f_s')+' 为周期延拓，只有 '+M('f_s\\ge 2f_m')+' 才不重叠，才能用低通滤波器取出原频谱。'};
+});
+T('t22','concept','k11','抽样混叠', d=>{
+  const fm=ri(2,8), fs=2*fm-1;
+  return {q:'信号最高频率 '+M('f_m='+fm+'\\,\\mathrm{kHz}')+'，实际抽样频率仅 '+M('f_s='+fs+'\\,\\mathrm{kHz}<2f_m')+'，则恢复原信号会出现：',
+    correct:'频谱混叠',
+    distractors:['幅度衰减','相位失真','时间延迟'],
+    exp:M('f_s<2f_m')+'（等价于抽样间隔 '+M('T_s>1/(2f_m)')+'）时，延拓频谱互相重叠，称为混叠（aliasing），此时任何滤波器都无法无失真恢复。实际中抗混叠低通滤波必须先于抽样。'};
+});
+
+/* k12 拉普拉斯变换与收敛域 */
+T('t23','calc','k12','拉氏变换与收敛域', d=>{
+  const a=ra(d);
+  return {q:M('\\mathrm{e}^{-'+a+'t}u(t)')+' 的拉普拉斯变换及其收敛域是：',
+    correct:M('\\dfrac{1}{s+'+a+'}')+'，'+M('\\mathrm{Re}(s)>-'+a),
+    distractors:[M('\\dfrac{1}{s+'+a+'}')+'，全平面',M('\\dfrac{1}{s-'+a+'}')+'，'+M('\\mathrm{Re}(s)>'+a),M('\\dfrac{1}{s+'+a+'}')+'，'+M('\\mathrm{Re}(s)<-'+a)],
+    exp:M('F(s)=\\dfrac{1}{s+'+a+'}')+'，积分 '+M('\\int_0^{\\infty}\\mathrm{e}^{-(s+'+a+')t}\\mathrm{d}t')+' 收敛要求 '+M('\\mathrm{Re}(s+'+a+')>0')+'，即 '+M('\\mathrm{Re}(s)>-'+a)+'。收敛域是极点 '+M('-'+a)+' 右侧的开平面。'};
+});
+T('t24','concept','k12','拉氏与傅氏的关系', d=>{
+  const a=ra(d);
+  return {q:'设 '+M('s=\\sigma+\\mathrm{j}\\omega')+'、'+M('\\sigma='+a+'>0')+'，拉普拉斯变换可以理解为：',
+    correct:'傅里叶变换加上收敛因子 '+M('\\mathrm{e}^{-\\sigma t}'),
+    distractors:['傅里叶变换的微分','傅里叶变换的抽样','与傅里叶变换无关'],
+    exp:M('F(s)=\\int f(t)\\mathrm{e}^{-(\\sigma+\\mathrm{j}\\omega)t}\\mathrm{d}t=\\mathcal{F}\\!\\left[f(t)\\mathrm{e}^{-\\sigma t}\\right]')+'。乘 '+M('\\mathrm{e}^{-\\sigma t}')+' 让增长信号也绝对可积，扩大了可变换范围；傅氏变换是 '+M('s=\\mathrm{j}\\omega')+'（'+M('\\sigma=0')+'）的特例。'};
+});
+
+/* k13 拉氏变换性质 */
+T('t25','property','k13','微分性质', d=>{
+  const f0=ri(1,6);
+  return {q:'若 '+M('f(t)\\leftrightarrow F(s)')+' 且 '+M('f(0^-)='+f0)+'，则 '+M('\\dfrac{\\mathrm{d}f(t)}{\\mathrm{d}t}')+' 的拉氏变换是：',
+    correct:M('sF(s)-'+f0),
+    distractors:[M('sF(s)'),M('sF(s)+'+f0),M('\\dfrac{F(s)}{s}')],
+    exp:'微分性质 '+M('\\mathcal{L}\\!\\left[f^{\\prime}(t)\\right]=sF(s)-f(0^-)=sF(s)-'+f0)+'，注意用 '+M('0^-')+' 而不是 '+M('0^+')+'，初始跳变信息才不丢。'+M('F(s)/s')+' 是时域积分的形式。'};
+});
+T('t26','property','k13','时移性质', d=>{
+  const t0=ri(1,6);
+  return {q:'若 '+M('f(t)u(t)\\leftrightarrow F(s)')+'，则 '+M('f(t-'+t0+')u(t-'+t0+')')+' 的拉氏变换是：',
+    correct:M('\\mathrm{e}^{-'+t0+'s}F(s)'),
+    distractors:[M('\\mathrm{e}^{'+t0+'s}F(s)'),M('F(s-'+t0+')'),M('sF(s)-f('+t0+')')],
+    exp:'时移性质 '+M('f(t-t_0)u(t-t_0)\\leftrightarrow \\mathrm{e}^{-st_0}F(s)')+'，取 '+M('t_0='+t0)+'。注意信号必须整体延迟（连同 '+M('u')+' 一起平移）才能直接套用；只延迟 '+M('f')+' 不延迟 '+M('u')+' 需另行展开。'};
+});
+
+/* k14 拉氏反变换与部分分式 */
+T('t27','calc','k14','部分分式反变换', d=>{
+  const b=ri(2,6);
+  return {q:M('F(s)=\\dfrac{1}{s(s+'+b+')}')+' 的拉氏反变换是：',
+    correct:M('\\dfrac{1}{'+b+'}(1-\\mathrm{e}^{-'+b+'t})u(t)'),
+    distractors:[M('(1-\\mathrm{e}^{-'+b+'t})u(t)'),M('\\dfrac{1}{'+b+'}(1+\\mathrm{e}^{-'+b+'t})u(t)'),M('\\mathrm{e}^{-'+b+'t}u(t)')],
+    exp:'部分分式：'+M('\\dfrac{1}{s(s+'+b+')}=\\dfrac{1}{'+b+'}\\left(\\dfrac{1}{s}-\\dfrac{1}{s+'+b+'}\\right)')+'，反变换得 '+M('\\dfrac{1}{'+b+'}(1-\\mathrm{e}^{-'+b+'t})u(t)')+'。漏掉系数 '+M('1/'+b)+' 是最常见错误。'};
+});
+T('t28','concept','k14','极点决定响应模式', d=>{
+  const p=ri(1,6), neg=Math.random()<0.5, ps=neg? '-'+p : ''+p, ep=p===1? 't' : p+'t';
+  const dec=M('\\mathrm{e}^{-'+ep+'}u(t)')+' 型指数衰减', grow=M('\\mathrm{e}^{'+ep+'}u(t)')+' 型指数增长';
+  return {q:'像函数的单实极点 '+M('p='+ps)+' 对应的时域分量形态是：',
+    correct:neg? dec : grow,
+    distractors:[neg? grow : dec, '等幅振荡', M('\\delta(t)')],
+    exp:'单实极点 '+M('p')+' 对应 '+M('\\mathrm{e}^{pt}u(t)')+'：负实极点对应衰减，正实极点对应增长，共轭虚极点对应等幅振荡，共轭复极点对应衰减或增长振荡。这是「极点决定响应模式」的核心结论。'};
+});
+
+/* k15 系统函数与稳定性 */
+T('t29','calc','k15','二阶系统稳定性判别', d=>{
+  const p1=ri(1,4), p2=ri(1,4);
+  if(Math.random()<0.4){
+    return {q:M('H(s)=\\dfrac{1}{(s-'+p1+')(s+'+p2+')}')+' 的因果系统是：',
+      correct:'不稳定的',
+      distractors:['稳定的','临界稳定的','无法判断'],
+      exp:'极点为 '+M(p1)+'（右半平面）与 '+M('-'+p2)+'。只要有一个极点在右半平面，冲激响应含 '+M('\\mathrm{e}^{'+p1+'t}')+' 增长项，系统不稳定。'};
+  }
+  const s=p1+p2, m=p1*p2;
+  return {q:M('H(s)=\\dfrac{1}{s^2+'+s+'s+'+m+'}')+' 的因果系统是：',
+    correct:'稳定的',
+    distractors:['不稳定的','临界稳定的','无法判断'],
+    exp:M('s^2+'+s+'s+'+m+'=(s+'+p1+')(s+'+p2+')')+'，极点 '+M('-'+p1)+'、'+M('-'+p2)+' 均在左半平面，故稳定。二阶系统还可用系数判据：系数全为正即稳定。'};
+});
+T('t30','concept','k15','系统稳定的条件', d=>{
+  const n=ri(2,5);
+  return {q:'设 '+M('H(s)')+' 有 '+M(String(n))+' 个极点，因果连续 LTI 系统稳定的条件是：',
+    correct:'极点全部在 s 左半平面',
+    distractors:['零点全部在左半平面','极点全部在右半平面','极点都在虚轴上'],
+    exp:'因果系统稳定等价于 '+M('H(s)')+' 极点全部满足 '+M('\\mathrm{Re}(p)<0')+'，冲激响应绝对可积。稳定性由极点决定、与零点位置无关；极点在虚轴上为临界稳定（如积分器），右半平面则不稳定。'};
+});
+T('t31','system','k15','选出稳定系统', d=>{
+  const a=ri(1,4), b=ri(1,4);
+  const opts=[M('H(s)=\\dfrac{1}{s+'+a+'}'),M('H(s)=\\dfrac{1}{s-'+a+'}'),M('H(s)=\\dfrac{1}{s^2}'),M('H(s)=\\dfrac{1}{(s+'+a+')(s-'+b+')}')];
+  return {q:'下列因果系统中，稳定的是：',
+    correct:opts[0], distractors:opts.slice(1),
+    exp:'只有 '+M('1/(s+'+a+')')+' 的极点 '+M('-'+a)+' 在左半平面。'+M('1/(s-'+a+')')+' 有右半平面极点；'+M('1/s^2')+' 极点在原点（二重），临界稳定；'+M('1/[(s+'+a+')(s-'+b+')]')+' 含右半平面极点 '+M('+'+b)+'，不稳定。'};
+});
+
+/* ================= 知识点讲解素材（离线讲解用） ================= */
+/* brief：简明讲解；points：要点；tip：常见误区。全部用 M() 包公式，与题目符号规范一致。 */
+const KP_LESSONS = {
+ k01:{brief:'信号按能量与功率分为能量信号、功率信号，以及两者都不是的信号。能量 '+M('E=\\int\\limits_{-\\infty}^{\\infty}|f(t)|^2\\mathrm{d}t')+' 有限且平均功率为 0 的是能量信号；能量无限但平均功率有限的是功率信号。',
+   points:['先算能量，有限就停；能量无限再算功率 '+M('P=\\lim_{T\\to\\infty}\\dfrac{1}{2T}\\int\\limits_{-T}^{T}|f(t)|^2\\mathrm{d}t'),'时限、衰减的信号多为能量信号；周期信号、阶跃、常值多为功率信号','周期信号一定是功率信号，不可能是能量信号'],
+   tip:'别把「幅度看起来会衰减」直接当能量信号，必须真的算积分是否收敛。'},
+ k02:{brief:'单位冲激 '+M('\\delta(t)')+' 是面积（强度）为 1、宽度为 0 的极限信号。核心是采样性质 '+M('\\int f(t)\\delta(t-t_0)\\mathrm{d}t=f(t_0)')+' 与尺度性质 '+M('\\delta(at)=\\dfrac{1}{|a|}\\delta(t)')+'。',
+   points:['与 '+M('\\delta(t-t_0)')+' 相乘积分，等于把 '+M('f(t)')+' 在 '+M('t_0')+' 处取值','尺度变换取绝对值：'+M('\\delta(-2t)=\\dfrac{1}{2}\\delta(t)')+'，不是 '+M('-\\dfrac{1}{2}\\delta(t)'),M('\\delta(t-t_0)*f(t)=f(t-t_0)')+'，与冲激卷积等于平移'],
+   tip:'把「冲激的位置」和「冲激的强度」分开看，尺度性质只改强度不改位置。'},
+ k03:{brief:'线性要同时满足齐次性与叠加性，时不变要求输入延迟多少、输出就同步延迟多少，即 '+M('x(t-t_0)\\to y(t-t_0)')+'。',
+   points:['系数里含 '+M('t')+'（如 '+M('y(t)=t\\,x(t)')+'）通常是时变，但仍然线性','含常数偏置 '+M('y(t)=ax(t)+b')+' 是仿射，不是线性','时域压缩 '+M('x(2t)')+' 线性但时变；平方、取绝对值破坏线性'],
+   tip:'「压缩/拉伸」不等于非线性，判断线性只看对 x 的运算是否一次齐次。'},
+ k04:{brief:'冲激响应 '+M('h(t)')+' 是零状态下对 '+M('\\delta(t)')+' 的响应；阶跃响应 '+M('g(t)')+' 是对 '+M('u(t)')+' 的零状态响应。二者关系 '+M('h(t)=\\dfrac{\\mathrm{d}g(t)}{\\mathrm{d}t}')+'、'+M('g(t)=\\int\\limits_{0^-}^{t}h(\\tau)\\mathrm{d}\\tau')+'。',
+   points:[M('h(t)')+' 对应零状态，零输入响应是另一条线索','求 '+M('g(t)')+' 就是 '+M('u(t)*h(t)')+'，别忘了积分产生的系数 '+M('1/a'),M('g(t)')+' 在 '+M('t=0')+' 从 0 开始，'+M('h(t)')+' 可能有跳变'],
+   tip:'算 '+M('\\int_0^t \\mathrm{e}^{-a\\tau}\\mathrm{d}\\tau')+' 时漏掉 '+M('1/a')+' 是最常犯的错。'},
+ k05:{brief:'全响应 = 零输入响应 + 零状态响应。零输入由初始状态与系统特性决定，零状态由激励与系统特性决定，等于 '+M('x(t)*h(t)')+'。',
+   points:['零状态响应满足线性，可直接用叠加 '+M('c_1x_1+c_2x_2\\to c_1y_1+c_2y_2'),'零输入响应不满足对激励的线性叠加','分解的好处是把「初始储能」和「外部激励」分开处理'],
+   tip:'题目没写「零状态」就别急着用叠加，先看有没有初始条件。'},
+ k06:{brief:'卷积积分 '+M('y(t)=\\int\\limits_{-\\infty}^{\\infty}x(\\tau)h(t-\\tau)\\mathrm{d}\\tau')+' 是 LTI 系统求零状态响应的核心。图解法五步：换元、翻转、平移、相乘、积分。',
+   points:[M('u(t)*u(t)=t\\,u(t)')+'（斜坡），'+M('u(t)*t\\,u(t)=\\dfrac{t^2}{2}u(t)'),M('\\delta(t-t_0)*f(t)=f(t-t_0)')+'，'+M('\\delta(t)')+' 是卷积恒等元','两个阶跃 '+M('u(t-a)*u(t-b)=(t-a-b)u(t-a-b)')+'，转折点在 '+M('a+b')],
+   tip:'卷积结果是 t 的函数，积分区间会随 t 移动，别把上限写死。'},
+ k07:{brief:'周期信号频谱是离散谱线，具有离散性、谐波性、收敛性。谱线间隔 '+M('\\omega_1=\\dfrac{2\\pi}{T}')+'，周期越大谱线越密。',
+   points:['谱线只出现在 '+M('n\\omega_1')+' 处，'+M('n')+' 为整数','幅度随 '+M('|n|')+' 增大而衰减（收敛性）','非周期信号的频谱是连续的，两者不要混'],
+   tip:'吉布斯现象：间断点附近峰值约为跳变量的 8.95%，项数再多也不消失。'},
+ k08:{brief:'傅里叶变换 '+M('F(\\omega)=\\int\\limits_{-\\infty}^{\\infty}f(t)\\mathrm{e}^{-\\mathrm{j}\\omega t}\\mathrm{d}t')+' 把时域信号映射到频域。绝对可积是充分条件而非必要条件。',
+   points:[M('\\mathrm{e}^{-at}u(t)\\leftrightarrow \\dfrac{1}{a+\\mathrm{j}\\omega}\\ (a>0)')+' 是最常用的变换对',M('u(t)')+' 的变换含直流冲激项 '+M('\\pi\\delta(\\omega)')+'，不要漏','引入冲激函数后，'+M('u(t)')+'、周期信号也有傅里叶变换'],
+   tip:'选项里出现 '+M('\\pi\\delta(\\omega)')+' 时，先想是不是 '+M('u(t)')+' 或周期信号。'},
+ k09:{brief:'时移 '+M('f(t-t_0)\\leftrightarrow F(\\omega)\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+' 只改相位；尺度 '+M('f(at)\\leftrightarrow \\dfrac{1}{|a|}F(\\omega/a)')+' 同时改变频域宽度与幅度。',
+   points:['时移不改幅度谱，只加线性相位','时域压缩对应频域展宽，脉宽与带宽成反比','注意区分「时域平移」和「时域展缩」两种形式'],
+   tip:'看到 '+M('\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+' 就想到时移，看到 '+M('F(\\omega/a)/|a|')+' 就想到尺度。'},
+ k10:{brief:'卷积定理 '+M('f_1*f_2\\leftrightarrow F_1F_2')+'：时域卷积对应频域相乘；对偶地，时域相乘对应频域卷积（带 '+M('1/2\\pi')+'）。',
+   points:['把「求零状态响应」从卷积积分变成频域乘法，再作反变换','矩形脉冲频谱 '+M('G_\\tau(t)\\leftrightarrow \\tau\\,\\mathrm{Sa}(\\omega\\tau/2)')+'，其中 '+M('\\mathrm{Sa}(x)=\\sin x/x'),'脉宽越窄，主瓣越宽，第一零点 '+M('\\omega=2\\pi/\\tau')],
+   tip:M('\\mathrm{Sa}')+' 是函数名要正体，不是 S 乘 a。'},
+ k11:{brief:'抽样定理：对最高频率 '+M('f_m')+' 的信号，需 '+M('f_s\\ge 2f_m')+' 才能无失真恢复。抽样后频谱以 '+M('f_s')+' 为周期延拓。',
+   points:[M('f_s<2f_m')+' 时相邻频谱重叠，产生混叠，无法用滤波器恢复','奈奎斯特频率 '+M('2f_m')+' 是下限，等于时临界','抗混叠低通滤波必须在抽样之前'],
+   tip:'题目问「最低抽样频率」时取等号即可，但判断能否恢复要看是否 ≥。'},
+ k12:{brief:'拉普拉斯变换 '+M('F(s)=\\int f(t)\\mathrm{e}^{-st}\\mathrm{d}t')+'（'+M('s=\\sigma+\\mathrm{j}\\omega')+'）相当于给信号乘收敛因子 '+M('\\mathrm{e}^{-\\sigma t}')+' 后再作傅里叶变换。收敛域由极点决定。',
+   points:[M('\\mathrm{e}^{-at}u(t)\\leftrightarrow \\dfrac{1}{s+a}')+'，收敛域 '+M('\\mathrm{Re}(s)>-a')+'（极点右侧）','傅氏变换是 '+M('s=\\mathrm{j}\\omega')+' 的特例','同一 '+M('F(s)')+' 配不同收敛域对应不同时域信号'],
+   tip:'只写表达式不写收敛域，反变换是不唯一的。'},
+ k13:{brief:'微分性质 '+M('\\mathcal{L}[f^{\\prime}(t)]=sF(s)-f(0^-)')+'；时移性质 '+M('f(t-t_0)u(t-t_0)\\leftrightarrow \\mathrm{e}^{-st_0}F(s)')+'。',
+   points:['初始条件用 '+M('0^-')+' 才能保留跳变信息','时移必须整体平移（连同 '+M('u(t)')+' 一起）',M('F(s)/s')+' 对应时域积分，别和微分搞混'],
+   tip:'信号只延迟 f 而不延迟 u 时，不能直接套时移公式。'},
+ k14:{brief:'拉氏反变换常用部分分式展开：把 '+M('F(s)')+' 拆成一阶项之和，再逐项查表。单实极点 '+M('p')+' 对应 '+M('\\mathrm{e}^{pt}u(t)')+'。',
+   points:[''+M('\\dfrac{1}{s(s+b)}=\\dfrac{1}{b}\\left(\\dfrac{1}{s}-\\dfrac{1}{s+b}\\right)')+'，别漏系数 '+M('1/b'),'负实极点衰减、正实极点增长、共轭虚极点等幅振荡','也可用留数法 '+M('\\mathrm{Res}[F(s)\\mathrm{e}^{st}]')],
+   tip:'部分分式系数算错是失分主因，代一个简单 s 值验算一下。'},
+ k15:{brief:'系统函数 '+M('H(s)=Y(s)/X(s)')+'。因果连续 LTI 系统稳定等价于 '+M('H(s)')+' 全部极点位于 s 左半平面（'+M('\\mathrm{Re}(p)<0')+'）。',
+   points:['稳定性只看极点，与零点位置无关','极点在虚轴上是临界稳定（如积分器 '+M('1/s^2')+'）','右半平面有极点就不稳定，哪怕只有一个'],
+   tip:'二阶系统 '+M('s^2+as+b')+' 可用系数全为正作快捷判据，但高阶要用劳斯判据。'}
+};
+
+/* ================= 图形题模（题干带参数化 SVG） ================= */
+function TG(id,type,kp,label,gen){ TEMPLATES.push({id,type,kp,label,gen,fig:true}); }
+
+/* 图 1：看波形判能量/功率信号 */
+TG('g01','concept','k01','波形判信号类型', d=>{
+  const k=pick(['rect','exp','step','sine']);
+  const tau=ri(1,3), A=ri(1,3), a=ra(d), T=ri(1,3);
+  const energy=(k==='rect'||k==='exp');
+  const opts=['能量信号','功率信号','既是能量信号又是功率信号','既不是能量信号也不是功率信号'];
+  const correct=energy?opts[0]:opts[1];
+  const fig=figWave(k,{tau:tau,A:A,a:a,T:T});
+  const cap=k==='rect'? '矩形脉冲：宽度 '+M('\\tau')+'、幅度 '+M('A')+'，其余时间为 0。'
+    : k==='exp'? '单边指数衰减信号 '+M('\\mathrm{e}^{-at}')+'。' : k==='step'? '单边阶跃信号，之后保持幅度 '+M('A')+'。' : '正弦周期信号，周期为 '+M('T')+'。';
+  return {q:'图示信号属于：', correct:correct, distractors:opts.filter(x=>x!==correct),
+    exp:energy? '该信号在时域上能量 '+M('E=\\int|f(t)|^2\\mathrm{d}t<\\infty')+'、平均功率为 0，故为能量信号。'
+              : '该信号在时间轴上无限延伸，能量 '+M('E\\to\\infty')+'，但平均功率有限（'+M('P=\\lim_{T\\to\\infty}\\dfrac{1}{2T}\\int\\limits_{-T}^{T}|f(t)|^2\\mathrm{d}t')+'），故为功率信号。周期信号一定是功率信号。',
+    fig:fig, figCap:'图：'+cap,
+    hints:['先看波形在时间轴上是不是只存在于有限区间，或者快速衰减到 0。',
+           '算能量 '+M('E=\\int\\limits_{-\\infty}^{\\infty}|f(t)|^2\\mathrm{d}t')+'：收敛就是能量信号。',
+           '能量发散时再算平均功率 '+M('P')+'：有限则是功率信号。']};
+});
+
+/* 图 2：读冲激位置与强度求采样积分 */
+TG('g02','calc','k02','冲激采样读图', d=>{
+  const t0=ri(1,4), w=ri(2,5), b=ri(1,6);
+  const val=w*(t0+b);
+  const cand=[w*t0,w*b,t0+b,val+w,val-w,val+b+3];
+  const uniq=[...new Set(cand.filter(x=>x!==val))].slice(0,3).map(String);
+  return {q:'图示冲激信号与 '+M('f(t)=t+'+b)+' 相乘后在整个时间轴上积分，结果是：',
+    correct:String(val), distractors:uniq,
+    exp:'图中冲激位于 '+M('t_0='+t0)+'、强度为 '+M(String(w))+'，即 '+M(w+'\\delta(t-'+t0+')')+'。由采样性质 '+M('\\int f(t)\\delta(t-t_0)\\mathrm{d}t=f(t_0)')+' 得 '+M(w+'\\cdot('+t0+'+'+b+')='+val)+'。',
+    fig:figWave('impulse',{t0:t0,w:w}), figCap:'图：单个冲激，括号中数字为冲激强度，横轴标注其位置。',
+    hints:['先从图里读出两件事：冲激出现在哪个时刻，强度是多少。',
+           '套采样性质 '+M('\\int f(t)\\delta(t-t_0)\\mathrm{d}t=f(t_0)')+'，把 '+M('f(t)=t+'+b)+' 在该点取值。',
+           '别忘了把图上的冲激强度 '+M(String(w))+' 乘进去。']};
+});
+
+/* 图 3：看框图判线性 / 时不变性 */
+TG('g03','system','k03','框图判系统特性', d=>{
+  const cases=[
+    {k:'gain',lin:true,ti:true,e:'常数增益 '+M('K')+'：满足齐次与叠加，且不含 '+M('t')+'，故线性时不变。'},
+    {k:'delay',lin:true,ti:true,e:'纯延迟是线性时不变系统：输出随输入同步延迟。'},
+    {k:'lti',lin:true,ti:true,e:'零状态 LTI 系统，按定义线性且时不变。'},
+    {k:'feedback',lin:true,ti:true,e:'线性负反馈环节仍由线性元件构成，故线性时不变。'},
+    {k:'tvar',lin:true,ti:false,e:'增益含 '+M('t')+'，输入延迟后 '+M('t\\,x(t-t_0)\\ne (t-t_0)x(t-t_0)')+'，故时变；对 '+M('x')+' 仍是一次齐次，故线性。'},
+    {k:'nonlin',lin:false,ti:true,e:'方框内是 '+M('x^2(t)')+'，含平方项破坏叠加性，故非线性；不含 '+M('t')+'，故时不变。'}
+  ];
+  const c=pick(cases), opts=['线性、时不变','线性、时变','非线性、时不变','非线性、时变'];
+  const correct=opts[(c.lin?0:2)+(c.ti?0:1)];
+  return {q:'图示系统是：', correct:correct, distractors:opts.filter(x=>x!==correct), exp:c.e,
+    fig:figBlock(c.k,{a:ri(2,5),t0:ri(1,3)}), figCap:'图：系统方框图，输入 '+M('x(t)')+'，输出 '+M('y(t)')+'。',
+    hints:['看方框里的运算：是常数倍、含 '+M('t')+' 的系数，还是 '+M('x')+' 的平方/绝对值？',
+           '线性看「对 x 是否一次齐次」，时不变看「系数或变换里是否含 '+M('t')+'」。',
+           '常数增益、纯延迟、线性负反馈都是 LTI；系数含 '+M('t')+' 时变；含平方项非线性。']};
+});
+
+/* 图 4：卷积结果图 */
+TG('g04','calc','k06','卷积结果读图', d=>{
+  const a=ri(0,2), b=ri(0,2), s=a+b;
+  const correct=s? M('(t-'+s+')u(t-'+s+')') : M('t\\,u(t)');
+  const ds=s? [M('t\\,u(t)'),M('u(t-'+s+')'),M('\\dfrac{t^2}{2}u(t)')]
+             : [M('u(t)'),M('\\delta(t)'),M('\\dfrac{t^2}{2}u(t)')];
+  return {q:'图示为 '+M('u(t-'+a+')*u(t-'+b+')')+' 的结果，其表达式是：',
+    correct:correct, distractors:ds,
+    exp:'两个阶跃的卷积是斜坡，转折点在 '+M('t=a+b='+s)+'。由 '+M('\\int\\limits_{'+a+'}^{t-'+b+'}\\mathrm{d}\\tau=t-'+s)+'（'+M('t\\ge '+s)+'）得 '+correct+'。'+M('\\dfrac{t^2}{2}u(t)')+' 是 '+M('u(t)*t\\,u(t)')+' 的结果。',
+    fig:figConvRamp(s), figCap:'图：卷积结果，红色虚线标出斜坡起始时刻 '+M('a+b')+'。',
+    hints:['先想两个阶跃卷积的积分区间：从 '+M('a')+' 到 '+M('t-b')+'。',
+           '区间长度是 '+M('t-(a+b)')+'，所以结果是从 '+M('t=a+b')+' 开始的斜坡。',
+           '别和 '+M('u(t)*t\\,u(t)=\\dfrac{t^2}{2}u(t)')+' 混淆，那是二次曲线。']};
+});
+
+/* 图 5：离散频谱求周期 */
+TG('g05','calc','k07','频谱读周期', d=>{
+  const m=ri(2,6);
+  return {q:'图示为某周期信号的频谱，谱线间隔 '+M('\\omega_1='+m+'\\,\\mathrm{rad/s}')+'，其周期 '+M('T')+' 为：',
+    correct:M('\\dfrac{2\\pi}{'+m+' }'),
+    distractors:[M('2\\pi'),M('\\dfrac{\\pi}{'+m+' }'),'不是周期信号'],
+    exp:'周期信号谱线间隔 '+M('\\omega_1=\\dfrac{2\\pi}{T}')+'，故 '+M('T=\\dfrac{2\\pi}{\\omega_1}=\\dfrac{2\\pi}{'+m+' }')+'。谱线越密（'+M('\\omega_1')+' 越小）说明周期越长。',
+    fig:figSpec('lines',{step:Math.round(150/m),w1:m}), figCap:'图：离散谱线，箭头标出相邻谱线间隔 '+M('\\omega_1')+'。',
+    hints:['离散谱线说明是周期信号，先排除「不是周期信号」。',
+           '记住谱线间隔和周期的关系 '+M('\\omega_1=2\\pi/T')+'。',
+           '把 '+M('\\omega_1='+m)+' 代进去解 '+M('T')+' 即可。']};
+});
+
+/* 图 6：矩形脉冲频谱第一零点 */
+TG('g06','calc','k10','Sa 频谱读零点', d=>{
+  const tau=ri(2,6);
+  return {q:'图示为宽度 '+M('\\tau='+tau)+' 的矩形脉冲频谱 '+M('F(\\omega)')+'，其第一个零点位于：',
+    correct:M('\\dfrac{2\\pi}{'+tau+' }'),
+    distractors:[M('\\dfrac{\\pi}{'+tau+' }'),M('\\dfrac{4\\pi}{'+tau+' }'),M('\\dfrac{2\\pi}{'+(2*tau)+' }')],
+    exp:M('G_\\tau(t)\\leftrightarrow \\tau\\,\\mathrm{Sa}\\!\\left(\\dfrac{\\omega\\tau}{2}\\right)')+'，'+M('\\mathrm{Sa}(x)=0')+' 的第一个正根是 '+M('x=\\pi')+'，故 '+M('\\dfrac{\\omega\\tau}{2}=\\pi\\Rightarrow\\omega=\\dfrac{2\\pi}{\\tau}=\\dfrac{2\\pi}{'+tau+' }')+'。脉宽越窄，主瓣越宽。',
+    fig:figSpec('sa',{w:Math.round(170/tau)}), figCap:'图：抽样函数型频谱，红色虚线标出第一零点 '+M('\\pm 2\\pi/\\tau')+'。',
+    hints:['先写出矩形脉冲的频谱 '+M('\\tau\\,\\mathrm{Sa}(\\omega\\tau/2)')+'。',
+           '想想 '+M('\\mathrm{Sa}(x)=\\sin x/x')+' 什么时候第一次取零。',
+           '令 '+M('\\omega\\tau/2=\\pi')+' 解出 '+M('\\omega')+'。']};
+});
+
+/* 图 7：抽样频谱判混叠 */
+TG('g07','concept','k11','抽样频谱判混叠', d=>{
+  const overlap=Math.random()<0.5, dd=overlap?140:212;
+  const A='频谱混叠，无法无失真恢复', B='可无失真恢复';
+  const correct=overlap? A : B;
+  return {q:'图示为抽样后频谱以 '+M('f_s')+' 为周期延拓的结果（三角形为原信号频谱），据此判断恢复情况：',
+    correct:correct, distractors:[overlap?B:A,'幅度衰减','相位失真'],
+    exp:overlap? '相邻延拓频谱互相重叠（图中红色区域），说明 '+M('f_s<2f_m')+'，产生混叠。此时任何低通滤波器都无法分离出原频谱。'
+               : '相邻延拓频谱之间有间隔，说明 '+M('f_s\\ge 2f_m')+'，可用理想低通滤波器无失真取出原频谱。',
+    fig:figSpec('alias',{d:dd}), figCap:'图：三角形频谱以 '+M('f_s')+' 为间隔延拓，红色区域表示重叠。',
+    hints:['看相邻两个三角形有没有搭在一起。',
+           '重叠对应 '+M('f_s<2f_m')+'，有间隔对应 '+M('f_s\\ge 2f_m')+'。',
+           '重叠时频谱相加不可逆，滤波器也救不回来。']};
+});
+
+/* 图 8：s 平面零极点判稳定 */
+TG('g08','calc','k15','零极点图判稳定', d=>{
+  const mode=pick(['stable','unstable','critical']);
+  let poles;
+  if(mode==='stable') poles=[[-ri(1,3),ri(-1,1)],[-ri(1,3),ri(-1,1)]];
+  else if(mode==='unstable') poles=[[-ri(1,2),0],[ri(1,3),ri(-1,1)]];
+  else poles=[[0,ri(-1,1)||1],[-ri(1,2),0]];
+  const zeros=Math.random()<0.5? [[-ri(1,2),ri(-1,1)]] : [];
+  const opts=['稳定的','不稳定的','临界稳定的','无法判断'];
+  const correct=mode==='stable'?opts[0]:mode==='unstable'?opts[1]:opts[2];
+  return {q:'图示为某因果系统的零极点图（'+M('\\times')+' 为极点，'+M('\\circ')+' 为零点），该系统是：',
+    correct:correct, distractors:opts.filter(x=>x!==correct),
+    exp:mode==='stable'? '全部极点位于 s 左半平面（'+M('\\mathrm{Re}(p)<0')+'），冲激响应绝对可积，故稳定。稳定性只由极点决定，与零点无关。'
+      : mode==='unstable'? '存在右半平面极点（'+M('\\mathrm{Re}(p)>0')+'），冲激响应含增长指数项，故不稳定。只要有一个就够。'
+      : '存在位于虚轴上的极点（'+M('\\mathrm{Re}(p)=0')+'）且无右半平面极点，属于临界稳定，如积分器。',
+    fig:figPoleZero(poles,zeros,null), figCap:'图：'+M('s')+' 平面零极点分布，横轴 '+M('\\mathrm{Re}(s)')+'，纵轴 '+M('\\mathrm{Im}(s)')+'。',
+    hints:['只看 '+M('\\times')+'（极点），'+M('\\circ')+'（零点）不影响稳定性。',
+           '逐个看极点在虚轴左边、右边，还是正好落在虚轴上。',
+           '全在左边稳定；有任何一个在右边就不稳定；只有虚轴极点则是临界稳定。']};
+});
+
+
+/* ---------- 兜底题：仅当生成/校验全部失败时启用 ---------- */
+const FALLBACK = [
+ {kp:'k01',q:M('f(t)=\\mathrm{e}^{-2t}u(t)')+' 属于：',correct:'能量信号',
+  distractors:['功率信号','既是能量信号又是功率信号','既不是能量信号也不是功率信号'],
+  exp:'能量 '+M('E=\\int_0^{\\infty}\\mathrm{e}^{-4t}\\mathrm{d}t=\\dfrac{1}{4}<\\infty')+'，平均功率为 0，故为能量信号。'},
+ {kp:'k03',q:'系统 '+M('y(t)=t\\,x(t)')+' 是：',correct:'线性、时变',
+  distractors:['线性、时不变','非线性、时不变','非线性、时变'],
+  exp:'满足齐次与叠加故线性；输入延迟后 '+M('t\\,x(t-t_0)\\ne (t-t_0)x(t-t_0)')+'，故时变。'},
+ {kp:'k08',q:M('\\mathrm{e}^{-at}u(t)\\ (a>0)')+' 的傅里叶变换是：',correct:M('\\dfrac{1}{a+\\mathrm{j}\\omega}'),
+  distractors:[M('\\dfrac{1}{a-\\mathrm{j}\\omega}'),M('\\dfrac{1}{a+\\omega}'),M('\\pi\\delta(\\omega)+\\dfrac{1}{a+\\mathrm{j}\\omega}')],
+  exp:M('F(\\omega)=\\int_0^{\\infty}\\mathrm{e}^{-at}\\mathrm{e}^{-\\mathrm{j}\\omega t}\\mathrm{d}t=\\dfrac{1}{a+\\mathrm{j}\\omega}')+'。'},
+ {kp:'k11',q:'信号最高频率 '+M('f_m=5\\,\\mathrm{kHz}')+'，最低抽样频率是：',correct:M('10\\,\\mathrm{kHz}'),
+  distractors:[M('5\\,\\mathrm{kHz}'),M('2.5\\,\\mathrm{kHz}'),'大于 5 kHz 即可'],
+  exp:'奈奎斯特抽样定理 '+M('f_s\\ge 2f_m=10\\,\\mathrm{kHz}')+'。'},
+ {kp:'k12',q:M('\\mathrm{e}^{-at}u(t)\\ (a>0)')+' 的拉氏变换收敛域是：',correct:M('\\mathrm{Re}(s)>-a'),
+  distractors:['全 s 平面',M('\\mathrm{Re}(s)>a'),M('\\mathrm{Re}(s)<-a')],
+  exp:'收敛要求 '+M('\\mathrm{Re}(s+a)>0')+'，即 '+M('\\mathrm{Re}(s)>-a')+'，为极点 '+M('-a')+' 右侧的开平面。'},
+ {kp:'k15',q:'因果连续 LTI 系统稳定的条件是：',correct:'极点全部在 s 左半平面',
+  distractors:['零点全部在左半平面','极点全部在右半平面','极点都在虚轴上'],
+  exp:'稳定等价于冲激响应绝对可积，等价于 '+M('H(s)')+' 极点全在左半平面。'}
+];
+
+/* ---------- 符号规范校验 ---------- */
+/* 检查公式分隔符配对、公式块外是否残留 LaTeX 命令 / 裸上下标。
+   信号与系统对符号一致性要求高，不合规的题目直接丢弃重试，绝不放行到页面。 */
+function texIssues(str){
+  const issues=[];
+  const opens=(str.match(/\\\(/g)||[]).length, closes=(str.match(/\\\)/g)||[]).length;
+  if(opens!==closes) issues.push('公式分隔符不配对');
+  const outside=str.replace(/\\\(([\s\S]*?)\\\)/g,'');
+  if(/\\(?:dfrac|frac|int|delta|omega|tau|sigma|sqrt|mathrm|mathcal|sum|ge|le|times|infty|pi|left|right|cdot|leftrightarrow|delta|mathrm|mathcal|mathrm)\b|\^\{|\^\d|_\{/.test(outside))
+    issues.push('公式块外残留 LaTeX 命令或裸上下标');
+  if(/[₀₁₂₃₄₅₆₇₈₉⁰¹²³⁴⁵⁶⁷⁸⁹⁻⁺]/.test(outside))
+    issues.push('公式块外残留 Unicode 上下标');
+  /* 公式块内：GB 3102.11 / ISO 80000-2 正斜体规范，防止以后改题时退回斜体常数 */
+  (str.match(/\\\(([\s\S]*?)\\\)/g)||[]).forEach(b=>{
+    const t=b.slice(2,-2);
+    if(/e\^/.test(t)) issues.push('自然底 e 未用 \\mathrm{e} 正体');
+    if(/j\\omega/.test(t)) issues.push('虚数单位 j 未用 \\mathrm{j} 正体');
+    if(/dt|d\\tau|\\dfrac\{dg\(|\\dfrac\{df\(/.test(t)) issues.push('微分算子 d 未用 \\mathrm{d} 正体');
+    /* 命令名少了反斜杠：JS 字符串里写成单反斜杠时会被吞掉，
+       KaTeX 会把 mathrm / dfrac 当普通字母排出来，页面出现「mathrmdt」这类源码文字。 */
+    /* 前面既不能是反斜杠也不能是字母，否则 \dfrac 里的 frac 会被误判 */
+    if(/(?<![\\\w])(?:mathrm|dfrac|delta|omega|tau|sigma|infty|pi|mathcal|cdot|int|sum|sqrt|left|right|text|leftrightarrow)\b/.test(t))
+      issues.push('公式内 LaTeX 命令缺反斜杠（会显示成 mathrm 等源码文字）');
+  });
+  return issues;
+}
+/* 归一化比对：删 LaTeX 命令，但保留分式括号结构。
+   否则 \dfrac{\pi}{2} 与 2\pi 会被压成同一个字符串，把合理选项误判为重复而丢弃整道题。 */
+function stripTex(s){
+  return String(s).replace(/\\[a-zA-Z]+/g,'')
+    .replace(/\{/g,'<').replace(/\}/g,'>')
+    .replace(/[\\\s(),，。、；：]/g,'').toLowerCase();
+}
+/* 图形指纹：把 SVG 里的文字标注与长度一起纳入，避免「题干相同但图不同」被误判为重复题 */
+function figSig(fig){
+  if(!fig) return '';
+  const texts=(fig.match(/data-tex="[^"]*"/g)||[]).join('|');
+  return texts+'#'+fig.length;
+}
+function signature(q){ return stripTex(q.q)+'#'+figSig(q.fig)+'#'+q.opts.map(stripTex).sort().join('|'); }
+
+/* 把题模输出规范化为旧版题目结构；格式不符返回 null（由生成循环丢弃重试） */
+function normalizeQuestion(tpl, d, raw){
+  if(!raw || typeof raw!=='object') return null;
+  const q=raw.q, correct=raw.correct, ds=raw.distractors, exp=raw.exp;
+  if(typeof q!=='string'||!q.trim()||typeof exp!=='string'||!exp.trim()) return null;
+  if(typeof correct!=='string'||!correct.trim()) return null;
+  if(!Array.isArray(ds)||ds.length!==3||ds.some(x=>typeof x!=='string'||!x.trim())) return null;
+  if(!KPS.some(k=>k.id===tpl.kp) || ![1,2,3].includes(d)) return null;
+  const fig=raw.fig, figCap=raw.figCap, hints=raw.hints, whyWrong=raw.whyWrong;
+  if(fig!==undefined && figIssues(fig).length) return null;      /* 图形不合法：丢弃 */
+  if(fig!==undefined && figCap===undefined) return null;          /* 有图必须有图注 */
+  if(figCap!==undefined && (typeof figCap!=='string'||!figCap.trim())) return null;
+  if(hints!==undefined && (!Array.isArray(hints)||hints.some(h=>typeof h!=='string'||!h.trim()))) return null;
+  if(whyWrong!==undefined && (!Array.isArray(whyWrong)||whyWrong.length!==3)) return null;
+  const texts=[q,correct,...ds,exp,...(figCap?[figCap]:[]),...(hints||[])];
+  for(const t of texts){ if(texIssues(t).length) return null; }   /* 符号不合规：丢弃 */
+  let opts=[correct,...ds];
+  if(new Set(opts.map(stripTex)).size!==4) return null;
+  for(let i=3;i>0;i--){ const j=ri(0,i); const tmp=opts[i]; opts[i]=opts[j]; opts[j]=tmp; }
+  const a=opts.indexOf(correct);
+  if(a<0) return null;
+  const out={kp:tpl.kp, type:tpl.type, d:d, q:q, opts:opts, a:a, exp:exp};
+  if(fig!==undefined) { out.fig=fig; out.figCap=figCap; out.hasFig=true; }
+  if(hints) out.hints=hints;
+  if(whyWrong) out.whyWrong=whyWrong;
+  return out;
+}
+
+/* 按配置生成一轮新题；返回数组元素与旧 QS 元素结构完全一致 */
+function generateQuestions(cfg, avoid){
+  const avoidSet=new Set(avoid||[]);
+  let tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&cfg.kps.includes(t.kp)&&(cfg.fig!==false||!t.fig));
+  let relaxed=false;
+  if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&(cfg.fig!==false||!t.fig)); relaxed=true; }
+  if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.fig!==false||!t.fig); relaxed=true; }
+  const diffs=cfg.diffs.length?cfg.diffs:[1,2,3];
+  const want=Math.max(1,Math.min(30,cfg.count|0||10));
+  const seen=new Set(), out=[];
+  let attempts=0, soft=0;
+  const maxAttempts=want*60+120;
+  while(out.length<want && attempts<maxAttempts){
+    attempts++;
+    const t=pick(tpls), d=pick(diffs);
+    let raw=null;
+    try{ raw=t.gen(d); }catch(e){ continue; }
+    const q=normalizeQuestion(t,d,raw);
+    if(!q) continue;
+    const sig=signature(q);
+    if(seen.has(sig)) continue;
+    if(avoidSet.has(sig) && soft<40){ soft++; continue; }
+    seen.add(sig); out.push(q);
+  }
+  if(out.length<want){
+    for(const f of FALLBACK){
+      if(out.length>=want) break;
+      const q=normalizeQuestion({kp:f.kp,type:'concept'},1,f);
+      if(!q || seen.has(signature(q))) continue;
+      seen.add(signature(q)); out.push(q);
+    }
+  }
+  /* 图形题保底：开启「含图形题」时，每轮至少保证约 20% 是图形题，
+     否则随机抽题可能整轮一张图都看不到，新增的读图能力就白做了。
+     补足时替换掉同轮的非图形题，保持题量与出题配置不变。 */
+  if(cfg.fig!==false && out.length){
+    const minFig=Math.max(1,Math.round(want*0.2));
+    let figTpls=TEMPLATES.filter(t=>t.fig&&cfg.types.includes(t.type)&&cfg.kps.includes(t.kp));
+    if(!figTpls.length) figTpls=TEMPLATES.filter(t=>t.fig);
+    let guard=0;
+    while(out.filter(q=>q.hasFig).length<minFig && guard++<want*40){
+      const t=pick(figTpls), d=pick(diffs);
+      let raw=null; try{ raw=t.gen(d); }catch(e){ continue; }
+      const q=normalizeQuestion(t,d,raw);
+      if(!q) continue;
+      const sg=signature(q);
+      if(seen.has(sg)) continue;
+      seen.add(sg);
+      const pos=out.findIndex(x=>!x.hasFig);
+      if(pos>=0) out.splice(pos,1,q); else out.push(q);
+    }
+  }
+  out.forEach(q=>{
+    q.id=state.nextId++;
+    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a};
+  });
+  state.lastSigs=out.map(signature);
+  state.relaxed=relaxed;
+  save();
+  return out;
+}
+
+/* ================= 状态 ================= */
+const STORE='ss_demo_v2';
+let state = {answers:{}, qbank:{}, roundLog:[], nextId:1, rounds:0, lastSigs:[], config:null};
+let QS=[];                 // 本轮生成的题目，元素结构与旧版完全一致
+let pool=[], idx=0, isRound2=false;
+
+function load(){ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(s && s.qbank){ state=s; if(!Array.isArray(state.roundLog)) state.roundLog=[]; } }catch(e){} }
+function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){ /* 沙箱环境可能禁用 localStorage，失败时仅保留在内存中，不影响做题 */ } }
+function resetAll(){ if(confirm('清空全部作答记录与出题配置？')){ state={answers:{},qbank:{},roundLog:[],nextId:1,rounds:0,lastSigs:[],config:null}; save(); location.reload(); } }
+
+/* ================= 出题配置 ================= */
+const DEFAULT_CFG={types:Object.keys(TYPES), kps:KPS.map(k=>k.id), diffs:[1,2,3], count:10, fig:true};
+function buildCfgUI(){
+  const chip=(v,txt,g)=>'<label class="chip"><input type="checkbox" data-group="'+g+'" value="'+v+'"><span>'+txt+'</span></label>';
+  document.getElementById('cfg-types').innerHTML=Object.keys(TYPES).map(k=>chip(k,TYPES[k],'type')).join('');
+  let kh='';
+  [1,2,3,4].forEach(ch=>{
+    kh+='<div class="cfg-ch">'+CHAPS[ch]+'</div>';
+    KPS.filter(k=>k.ch===ch).forEach(k=>{ kh+=chip(k.id,k.name,'kp'); });
+  });
+  document.getElementById('cfg-kps').innerHTML=kh;
+  document.getElementById('cfg-diffs').innerHTML=[1,2,3].map(d=>chip(''+d,['','易','中','难'][d],'diff')).join('');
+}
+function readCfg(){
+  const types=[...document.querySelectorAll('#cfg-types input:checked')].map(x=>x.value);
+  const kps=[...document.querySelectorAll('#cfg-kps input:checked')].map(x=>x.value);
+  const diffs=[...document.querySelectorAll('#cfg-diffs input:checked')].map(x=>+x.value);
+  const count=Math.max(3,Math.min(30,+document.getElementById('cfg-count').value||10));
+  const figEl=document.getElementById('cfg-fig');
+  return {types:types.length?types:DEFAULT_CFG.types.slice(),
+          kps:kps.length?kps:DEFAULT_CFG.kps.slice(),
+          diffs:diffs.length?diffs:DEFAULT_CFG.diffs.slice(),
+          count:count, fig:figEl? !!figEl.checked : true};
+}
+function applyCfg(){
+  const c=(state.config && state.config.types)?state.config:DEFAULT_CFG;
+  document.querySelectorAll('#cfg-types input').forEach(x=>x.checked=c.types.includes(x.value));
+  document.querySelectorAll('#cfg-kps input').forEach(x=>x.checked=c.kps.includes(x.value));
+  document.querySelectorAll('#cfg-diffs input').forEach(x=>x.checked=c.diffs.includes(+x.value));
+  document.getElementById('cfg-count').value=c.count;
+  const f=document.getElementById('cfg-fig'); if(f) f.checked=(c.fig!==false);
+}
+function cfgAll(){ document.querySelectorAll('#cfg-kps input').forEach(x=>x.checked=true); }
+function cfgNone(){ document.querySelectorAll('#cfg-kps input').forEach(x=>x.checked=false); }
+function cfgWeak(){
+  let w=new Set(weakKPs().map(k=>k.id));
+  if(!w.size) w=new Set(KPS.filter(k=>kpStatus(k.id).key!=='ok').map(k=>k.id));  /* 尚无作答记录时按「未掌握」全选 */
+  document.querySelectorAll('#cfg-kps input').forEach(x=>x.checked=w.has(x.value));
+}
+
+/* ================= 掌握度引擎 ================= */
+function kpStat(kid){
+  let n=0,c=0;
+  Object.values(state.qbank).forEach(q=>{ if(q.kp===kid && state.answers[q.id]!==undefined){ n++; if(state.answers[q.id].correct) c++; }});
+  return {n, c, rate: n? c/n : null};
+}
+function kpStatus(kid){
+  const s=kpStat(kid);
+  if(!s.n) return {key:'todo',label:'未测',pill:'warn'};
+  if(s.rate>=0.8) return {key:'ok',label:'掌握',pill:'ok'};
+  if(s.rate>=0.5) return {key:'mid',label:'不牢固',pill:'warn'};
+  return {key:'bad',label:'薄弱',pill:'bad'};
+}
+/* 本轮作答统计：单轮错题必须能被看见，不能被历史累计正确率稀释 */
+function roundStat(kid){
+  const rs=(state.roundLog||[]).filter(r=>r.kp===kid);
+  return {n:rs.length, c:rs.filter(r=>r.correct).length, wrong:rs.filter(r=>!r.correct).length};
+}
+function diagStatus(kid){
+  const rs=roundStat(kid), long=kpStatus(kid);
+  if(rs.wrong>0){
+    const bad=rs.wrong>=2 || rs.c===0;
+    return {key:bad?'bad':'mid', label:bad?'本轮薄弱':'本轮不牢', pill:bad?'bad':'warn'};
+  }
+  return long;
+}
+function weakKPs(){ return KPS.filter(k=>['bad','mid'].includes(diagStatus(k.id).key)); }
+
+/* ================= 屏幕切换 ================= */
+function show(id){
+  ['screen-home','screen-quiz','screen-report'].forEach(s=>{
+    document.getElementById(s).style.display = s===id?'block':'none';
+  });
+  const fab=document.getElementById('tutorFab');
+  if(fab) fab.style.display = id==='screen-quiz'?'block':'none';
+  if(id!=='screen-quiz'){ const p=document.getElementById('tutorPanel'); if(p) p.classList.remove('open');
+    if(document.body&&document.body.classList) document.body.classList.remove('tutor-open'); }
+  window.scrollTo(0,0);
+}
+/* 公式组件不可用时的纯文本降级：至少不让页面出现反斜杠源码 */
+function deTex(html){
+  const map={delta:'δ',omega:'ω',tau:'τ',sigma:'σ',pi:'π',infty:'∞',times:'×',ge:'≥',le:'≤',
+    leftrightarrow:'↔',to:'→',cdot:'·',int:'∫',sum:'∑',sqrt:'√',mathrm:'',mathcal:'',
+    left:'',right:'',displaystyle:'',quad:' '};
+  return html.replace(/\\\(([\s\S]*?)\\\)/g,(_,t)=>t
+    .replace(/\\dfrac\{([^{}]+)\}\{([^{}]+)\}/g,'($1)/($2)')
+    .replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g,'($1)/($2)')
+    .replace(/\\([a-zA-Z]+)/g,(m,c)=>map[c]!==undefined?map[c]:c)
+    .replace(/\\,/g,' ').replace(/\\!/g,'').replace(/[{}]/g,''));
+}
+function t2e(el){
+  if(!el) return;
+  if(window.renderMathInElement){
+    try{
+      renderMathInElement(el,{
+        delimiters:[{left:'\\(',right:'\\)',display:false},{left:'\\[',right:'\\]',display:true}],
+        ignoredTags:['script','noscript','style','textarea','pre','code','option'],
+        ignoredClasses:['katex','katex-display'],
+        throwOnError:false
+      });
+      return;
+    }catch(e){ /* 落到降级分支 */ }
+  }
+  /* 降级时只改文本节点，不重建 DOM，避免丢失选项的点击事件 */
+  if(document.createTreeWalker && window.NodeFilter){
+    const w=document.createTreeWalker(el,window.NodeFilter.SHOW_TEXT,null,false), ns=[];
+    while(w.nextNode()) ns.push(w.currentNode);
+    ns.forEach(n=>{ const v=deTex(n.nodeValue); if(v!==n.nodeValue) n.nodeValue=v; });
+  } else {
+    el.innerHTML=deTex(el.innerHTML);
+  }
+}
+function renderFigTex(box){
+  if(!box) return;
+  const svg=box.querySelector('svg'), ov=box.querySelector('.fig-ov');
+  if(!svg||!ov) return;
+  const W=440,H=190, sc=(box.clientWidth||W)/W;
+  let html='';
+  svg.querySelectorAll('text[data-tex]').forEach(t=>{
+    const x=+t.getAttribute('x')||0, y=+t.getAttribute('y')||0;
+    const fs=(+t.getAttribute('font-size')||11)*sc;
+    html+='<span class="fig-lb" style="left:'+(x/W*100)+'%;top:'+(y/H*100)+'%;'+
+      'color:'+(t.getAttribute('fill')||FC.txt)+';font-size:'+fs.toFixed(1)+'px">'+
+      '\\('+t.getAttribute('data-tex')+'\\)</span>';
+    t.style.display='none';
+  });
+  ov.innerHTML=html;
+  t2e(ov);
+}
+function katexGuard(){
+  if(typeof katex!=='undefined' && typeof renderMathInElement!=='undefined') return;
+  const n=document.createElement('div'); n.className='tex-warn';
+  n.innerHTML='公式渲染组件未能加载，数学符号已降级为纯文本显示。请确认 <b>vendor/katex/</b> 与 index.html 在同一目录，或联网后刷新页面。';
+  document.querySelector('.wrap').insertBefore(n,document.querySelector('.wrap').firstChild);
+}
+
+/* ================= 做题流程 ================= */
+function startQuiz(onlyWeak=false){
+  const cfg=readCfg();
+  state.config=cfg; state.roundLog=[]; save();   /* 每轮开始清空本轮作答记录并记住配置 */
+  const genCfg=Object.assign({},cfg);
+  if(onlyWeak){
+    const w=weakKPs().map(k=>k.id);
+    if(!w.length){ alert('当前没有薄弱知识点'); return; }
+    genCfg.kps=w;                           /* 强化轮：按薄弱知识点范围重新生成新题 */
+  }
+  QS=generateQuestions(genCfg, state.lastSigs);
+  if(!QS.length){ alert('出题失败，请调整配置后重试'); return; }
+  pool=QS.slice(); isRound2=onlyWeak; idx=0;
+  show('screen-quiz');
+  renderQ();
+}
+function renderQ(){
+  const q=pool[idx];
+  document.getElementById('qbar').style.width=(idx/pool.length*100)+'%';
+  const want=(state.config&&state.config.count)||pool.length;
+  document.getElementById('quiz-title').textContent =
+    (isRound2?'薄弱点强化练习 · ':'诊断测试 · ') + (idx+1)+' / '+pool.length +
+    (pool.length<want? '（去重后 '+pool.length+' 题）':'') +
+    (state.relaxed? ' · 配置已自动放宽':'');
+  document.getElementById('qmeta').innerHTML =
+    '<span class="tag tag-ch">'+CHAPS[KPS.find(k=>k.id===q.kp).ch]+'</span>'+
+    '<span class="tag tag-d'+q.d+'">'+(['','易','中','难'][q.d])+'</span>'+
+    '<span class="tag" style="background:#eef2f7;color:#475569">'+KPS.find(k=>k.id===q.kp).name+'</span>'+
+    (q.hasFig? '<span class="tag tag-fig">图形题</span>':'');
+  const figEl=document.getElementById('qfig');
+  if(q.hasFig){
+    figEl.innerHTML=q.fig+'<div class="qfig-cap">'+q.figCap+'</div>';
+    figEl.style.display='block';
+    renderFigTex(figEl.querySelector('.fig-box'));
+    t2e(figEl.querySelector('.qfig-cap'));
+  } else { figEl.style.display='none'; figEl.innerHTML=''; }
+  document.getElementById('qtext').innerHTML=q.q;
+  const box=document.getElementById('qopts'); box.innerHTML='';
+  q.opts.forEach((o,i)=>{
+    const d=document.createElement('div'); d.className='opt'; d.innerHTML='&nbsp;'+String.fromCharCode(65+i)+'. '+o;
+    d.onclick=()=>choose(i);
+    box.appendChild(d);
+  });
+  const fb=document.getElementById('qfb'); fb.className='feedback'; fb.innerHTML='';
+  document.getElementById('btn-next').style.display='none';
+  t2e(document.getElementById('qtext'));   /* 只渲染新内容，避免整屏重复扫描已渲染公式 */
+  t2e(document.getElementById('qopts'));
+  tutorOnNewQuestion();
+}
+function choose(i){
+  const q=pool[idx];
+  const opts=[...document.querySelectorAll('#qopts .opt')];
+  if(opts[0].dataset.done) return;
+  opts[0].dataset.done='1';
+  const ok = i===q.a;
+  state.answers[q.id]={correct:ok, chosen:i};
+  state.roundLog.push({qid:q.id, kp:q.kp, correct:ok});
+  save();
+  opts.forEach((o,j)=>{ o.style.cursor='default';
+    if(j===q.a) o.classList.add('right');
+    else if(j===i) o.classList.add('wrong');
+  });
+  const fb=document.getElementById('qfb');
+  fb.className='feedback '+(ok?'ok':'bad');
+  fb.innerHTML='<b>'+(ok?'回答正确':'回答错误，正确答案是 '+String.fromCharCode(65+q.a))+'</b><span class="explain">'+q.exp+'</span>';
+  t2e(fb);
+  document.getElementById('btn-next').style.display = idx<pool.length-1 ? 'inline-block':'none';
+  if(idx===pool.length-1) fb.insertAdjacentHTML('beforeend',
+    '<div style="margin-top:10px"><button class="btn btn-primary" onclick="endQuiz()">查看诊断报告</button></div>');
+}
+function nextQuestion(){ idx++; renderQ(); }
+function endQuiz(){ showReport(); }
+
+/* ================= 报告 ================= */
+function showReport(){
+  const answered=Object.keys(state.answers).length;
+  const total=Object.keys(state.qbank).length;
+  let correct=0; Object.values(state.answers).forEach(a=>{ if(a.correct) correct++; });
+  state.rounds++; save();
+
+  /* 诊断以「本轮」为准：只要有错题就必须出现在处方里，不被历史累计正确率稀释 */
+  const rTotal=(state.roundLog||[]).length;
+  const rCorrect=(state.roundLog||[]).filter(r=>r.correct).length;
+  const rWrong=rTotal-rCorrect;
+  const rWrongKPs=new Set((state.roundLog||[]).filter(r=>!r.correct).map(r=>r.kp));
+  const rateAll = rTotal? rCorrect/rTotal : (answered? correct/answered : 0);
+  let cls='good', msg='';
+  const wk=weakKPs();
+  if(!rTotal && !answered){ cls='mid'; msg='你还没有作答。开始一轮诊断后才能生成分析。'; }
+  else if(rWrong===0 && wk.length===0){ cls='good'; msg='本轮全对，且累计掌握度未发现薄弱点，可以扩大章节范围继续检验。'; }
+  else if(rateAll>=0.6){
+    cls='mid';
+    msg='本轮 '+rCorrect+'/'+rTotal+' 题正确，答错 '+rWrong+' 题，涉及 '+rWrongKPs.size+' 个知识点；'+
+        '共 '+wk.length+' 个知识点需要补强，已列入下方处方，建议按处方补弱后再测。';
+  }
+  else {
+    cls='poor';
+    msg='本轮正确率仅 '+Math.round(rateAll*100)+'%，答错 '+rWrong+' 题，有 '+wk.length+' 个知识点需要回炉。'+
+        '处方已按「先补前置、再补本体」排序。';
+  }
+
+  let html='<div class="summary '+cls+'">'+msg+'</div>';
+
+  /* 掌握度总览（按章分组） */
+  html+='<div class="card"><h3 style="margin-bottom:6px">知识点掌握度</h3>';
+  [1,2,3,4].forEach(ch=>{
+    const list=KPS.filter(k=>k.ch===ch);
+    if(!list.length) return;
+    html+='<div class="chap-h">'+CHAPS[ch]+'</div>';
+    list.forEach(k=>{
+      const st=kpStatus(k.id), s=kpStat(k.id), rs=roundStat(k.id);
+      let color= st.key==='ok'?'var(--ok)': st.key==='mid'?'var(--warn)': st.key==='bad'?'var(--bad)':'#cbd5e1';
+      let w = s.n? Math.max(s.rate*100,4):2;
+      const tag = rs.wrong? '<span class="pill bad" style="margin-left:4px">本轮错 '+rs.wrong+'</span>'
+                : (rs.n? '<span class="pill ok" style="margin-left:4px">本轮 '+rs.c+'/'+rs.n+'</span>' : '');
+      html+='<div class="kp-row">'+
+        '<div class="kp-name">'+k.name+'<small>前置：'+(k.prereq.length?k.prereq.map(id=>KPS.find(x=>x.id===id).name).join('、'):'无')+'</small></div>'+
+        '<div class="kp-bar"><i style="width:'+w+'%;background:'+color+'"></i></div>'+
+        '<div class="kp-stat">'+(s.n? '累计 '+s.c+'/'+s.n:'未测')+' <span class="pill '+st.pill+'">'+st.label+'</span>'+tag+'</div>'+
+      '</div>';
+    });
+  });
+  html+='</div>';
+
+  /* 薄弱点处方 */
+  html+='<div class="card"><h3 style="margin-bottom:6px">薄弱点处方</h3>';
+  if(!wk.length){
+    html+='<p style="font-size:14px;color:#374151">没有发现薄弱知识点。若已全部测完且掌握，说明第 1–4 章基础扎实；下一步可以扩充第 5 章之后的题库。</p>';
+  } else {
+    wk.forEach(k=>{
+      const st=diagStatus(k.id), s=kpStat(k.id), rs=roundStat(k.id);
+      /* 前置依赖检查 */
+      const badPre = k.prereq.filter(pid=>['bad','mid','todo'].includes(kpStatus(pid).key));
+      html+='<div class="rx'+(badPre.length?' prereq':'')+'">'+
+        '<h4>'+k.name+' <span class="pill '+st.pill+'">'+st.label+'</span>'+
+        '<small style="font-weight:400;color:var(--muted);margin-left:8px">'+
+        '累计 '+(s.n? s.c+'/'+s.n+' 题（'+Math.round(s.rate*100)+'%）':'未测')+' · 本轮 '+rs.c+'/'+rs.n+'</small></h4>';
+      if(badPre.length){
+        html+='<p><b>先补前置：</b>'+badPre.map(pid=>{
+          const p=KPS.find(x=>x.id===pid), ps=kpStatus(pid);
+          return p.name+'（'+ps.label+'）';
+        }).join('、')+'。该知识点建立在前置之上，前置不牢直接刷题收效有限。</p>';
+      }
+      const roundWrong=(state.roundLog||[]).filter(r=>r.kp===k.id && !r.correct);
+      if(roundWrong.length) html+='<p><b>本轮错题：</b>第 '+roundWrong.map(r=>r.qid).join('、')+' 题，建议先对照解析弄清错因。</p>';
+      const wrongQs=Object.values(state.qbank).filter(q=>q.kp===k.id && state.answers[q.id] && !state.answers[q.id].correct);
+      if(wrongQs.length) html+='<p>累计错题：'+wrongQs.map(q=>'第 '+q.id+' 题').join('、')+'。</p>';
+      k.res.forEach(r=>{ html+='<p><a href="'+r[1]+'" target="_blank">'+r[0]+' ↗</a></p>'; });
+      html+='</div>';
+    });
+  }
+  html+='</div>';
+
+  /* 迭代控制 */
+  html+='<div class="card"><h3 style="margin-bottom:10px">下一步</h3>'+
+    '<button class="btn btn-primary" onclick="startQuiz(true)" '+(wk.length?'':'disabled')+'>再练一轮薄弱点（'+((state.config&&state.config.count)||10)+' 道新题）</button>'+
+    '<button class="btn btn-ghost" onclick="startQuiz()">完整重测（新题）</button>'+
+    '<button class="btn btn-ghost" onclick="goHome()">返回首页</button>'+
+    '<div class="note">迭代逻辑：本轮只要有错题，对应知识点必定进入处方（不会被历史正确率稀释）；上方掌握度表是累计值，本轮表现单独标注。强化轮按薄弱范围即时生成新题。</div></div>';
+
+  document.getElementById('report-sub').textContent='第 '+state.rounds+' 轮 · 本轮 '+rTotal+' 题（错 '+rWrong+'） · 累计作答 '+answered+'/'+total+' 题';
+  document.getElementById('report-body').innerHTML=html;
+  t2e(document.getElementById('report-body'));
+  show('screen-report');
+}
+
+function goHome(){
+  renderHistory(); show('screen-home');
+}
+function renderHistory(){
+  const answered=Object.keys(state.answers).length;
+  document.getElementById('home-history').innerHTML = answered?
+    '<div class="card"><h3 style="margin-bottom:6px">历史进度</h3>'+
+    '<p style="font-size:14px;color:#374151">已完成 '+state.rounds+' 轮测试，累计生成 '+Object.keys(state.qbank).length+' 题、作答 '+answered+' 题。'+
+    ' <a href="#" onclick="showReport();return false" style="color:var(--accent)">查看上次诊断报告</a></p></div>':'';
+}
+
+/* ================= 讲解助手（边做边问） ================= */
+/* 两层能力：
+   ① 内置离线讲解：基于知识点图谱、递进提示、题目解析，本地生成，不联网也能用；
+   ② 可选 AI 接入：填 OpenAI 兼容接口后由模型对话，失败自动回退内置讲解。
+   学生没明确要答案时不直接剧透，提示按「方向 → 关键公式 → 完整解析」逐层展开。 */
+
+const AI_STORE='ss_tutor_ai_v1';
+let tutorMsgs=[], tutorHintLevel=0, tutorGreeted=false, tutorBusy=false, tutorAiCfg=null;
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  .replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function loadAiCfg(){ try{ const s=JSON.parse(localStorage.getItem(AI_STORE)); if(s&&s.endpoint) tutorAiCfg=s; }catch(e){} }
+function storeAiCfg(){ try{ if(tutorAiCfg) localStorage.setItem(AI_STORE,JSON.stringify(tutorAiCfg));
+  else localStorage.removeItem(AI_STORE); }catch(e){} }
+function applyAiBadge(){
+  const b=document.getElementById('tutor-badge'); if(!b) return;
+  const on=!!(tutorAiCfg&&tutorAiCfg.endpoint&&tutorAiCfg.key);
+  b.textContent=on?'已接入 AI':'内置离线讲解';
+  b.classList.toggle('ai',on);
+  ['ai-endpoint','ai-key','ai-model','tutor-ep','tutor-key','tutor-model'].forEach(id=>{
+    const el=document.getElementById(id); if(!el||!tutorAiCfg) return;
+    if(id==='ai-endpoint'||id==='tutor-ep') el.value=tutorAiCfg.endpoint||'';
+    if(id==='ai-key'||id==='tutor-key') el.value=tutorAiCfg.key||'';
+    if(id==='ai-model'||id==='tutor-model') el.value=tutorAiCfg.model||'';
+  });
+}
+
+/* ---------- 面板渲染 ---------- */
+function tutorRender(){
+  const log=document.getElementById('tutor-log'); if(!log) return;
+  log.innerHTML=tutorMsgs.map(m=>'<div class="msg '+m.role+'">'+escHtml(m.text)+'</div>').join('');
+  t2e(log);
+  log.scrollTop=log.scrollHeight;
+}
+function tutorPush(role,text){
+  tutorMsgs.push({role:role,text:text});
+  if(tutorMsgs.length>60) tutorMsgs=tutorMsgs.slice(-60);
+  tutorRender();
+}
+function tutorOnNewQuestion(){
+  tutorHintLevel=0;
+  tutorPush('sys','—— 第 '+(idx+1)+' 题 · '+KPS.find(k=>k.id===pool[idx].kp).name+' ——');
+}
+function toggleTutor(){
+  const p=document.getElementById('tutorPanel'); if(!p) return;
+  const open=p.classList.toggle('open');
+  if(document.body&&document.body.classList) document.body.classList.toggle('tutor-open',open);
+  if(open && !tutorGreeted){
+    tutorGreeted=true;
+    tutorPush('ai','我在旁边陪你做这道题。可以点下面的快捷按钮，也可以直接打字问。\n\n我会先给思路、再给关键公式，最后才给完整解析，不会一上来就剧透答案。');
+  }
+  if(open) setTimeout(()=>{const i=document.getElementById('tutor-input');if(i)i.focus();},50);
+}
+function tutorReset(){ tutorMsgs=[]; tutorHintLevel=0; tutorGreeted=false;
+  tutorPush('ai','已清空。我们重新来看当前这道题吧。'); }
+
+const QUICKS=[['hint','给个提示'],['concept','讲这个知识点'],['prereq','先补前置'],
+              ['options','选项错在哪'],['formula','符号怎么写'],['solve','看完整解析']];
+function tutorInitQuick(){
+  const box=document.getElementById('tutor-quick'); if(!box) return;
+  box.innerHTML=QUICKS.map(q=>'<button onclick="tutorQuick(\''+q[0]+'\')">'+q[1]+'</button>').join('');
+}
+function tutorQuick(kind){
+  const q=pool[idx]; if(!q) return;
+  if(kind==='hint'){ tutorPush('me','给个提示'); tutorPush('ai',hintAnswer(q)); return; }
+  const map={concept:'讲讲这个知识点',prereq:'我需要先补哪些前置？',options:'其他选项错在哪？',
+             formula:'这题的符号怎么写才规范？',solve:'直接看完整解析吧'};
+  tutorPush('me',map[kind]||kind);
+  const t=({concept:()=>conceptAnswer(q),prereq:()=>prereqAnswer(q),options:()=>optionsAnswer(q),
+             formula:()=>formulaAnswer(q),solve:()=>solveAnswer(q)})[kind];
+  if(t) tutorPush('ai',t());
+}
+
+/* ---------- 内置离线讲解 ---------- */
+function curKp(q){ return KPS.find(k=>k.id===q.kp); }
+function genericHints(q){
+  const L=KP_LESSONS[q.kp], kp=curKp(q);
+  const formulas=(q.exp.match(/\\\(([\s\S]*?)\\\)/g)||[]).slice(0,2);
+  return [
+    '这题考的是「'+kp.name+'」。'+(L? '先回忆一下：'+L.brief.split('。')[0]+'。':'先从定义出发。'),
+    formulas.length? '关键关系式先摆出来：'+formulas.join('　') : '把题干里的条件逐条写成式子，再对照定义。',
+    '还卡住的话点「看完整解析」，我会把推导过程完整讲一遍。'
+  ];
+}
+function hintAnswer(q){
+  const hs=(q.hints&&q.hints.length)? q.hints : genericHints(q);
+  tutorHintLevel++;
+  const i=Math.min(tutorHintLevel-1,hs.length-1);
+  let t='提示 '+tutorHintLevel+'／'+hs.length+'：'+hs[i];
+  if(tutorHintLevel<hs.length) t+='\n\n还没想通就再点一次「给个提示」。';
+  else t+='\n\n提示给完了，需要的话点「看完整解析」。';
+  return t;
+}
+function conceptAnswer(q){
+  const L=KP_LESSONS[q.kp], kp=curKp(q);
+  if(!L) return '这个知识点还没有整理讲解稿，先看本题解析：\n\n'+q.exp;
+  return '【'+kp.name+'】\n'+L.brief+'\n\n要点：\n'+
+    L.points.map((p,i)=>(i+1)+'. '+p).join('\n')+'\n\n常见误区：'+L.tip;
+}
+function prereqAnswer(q){
+  const kp=curKp(q);
+  if(!kp.prereq.length) return '「'+kp.name+'」没有前置知识点，可以直接从定义开始学。';
+  const lines=kp.prereq.map(pid=>{
+    const p=KPS.find(x=>x.id===pid), st=kpStatus(pid), s=kpStat(pid);
+    return '· '+p.name+'（'+st.label+(s.n? '，累计 '+s.c+'/'+s.n:'')+'）';
+  });
+  return '「'+kp.name+'」建立在下面这些前置之上：\n'+lines.join('\n')+
+    '\n\n建议顺序：先把上面的点补到「掌握」，再回来做本题。'+
+    (KP_LESSONS[kp.prereq[0]]? '\n\n先看第一个：'+KP_LESSONS[kp.prereq[0]].brief : '');
+}
+function optionsAnswer(q){
+  const ans=state.answers[q.id], chosen=ans? ans.chosen : null;
+  let t='四个选项：\n'+q.opts.map((o,i)=>String.fromCharCode(65+i)+'. '+o).join('\n');
+  if(chosen===null||chosen===undefined)
+    return t+'\n\n你还没作答。先告诉我你倾向选哪个，我针对性讲它错在哪；或者直接点「给个提示」。';
+  if(chosen===q.a) return t+'\n\n你选的是正确答案 '+String.fromCharCode(65+q.a)+'。\n\n'+q.exp;
+  return t+'\n\n你选了 '+String.fromCharCode(65+chosen)+'，正确答案是 '+String.fromCharCode(65+q.a)+'。\n\n'+q.exp;
+}
+function formulaAnswer(q){
+  return '这门课符号很讲究，本题相关约定：\n'+
+    '· 抽样函数写 '+M('\\mathrm{Sa}(x)=\\sin x/x')+'，函数名用 '+M('\\mathrm{Sa}')+' 这样的正体写法，不要写成斜体的 '+M('S\\cdot a')+'；\n'+
+    '· 虚数单位用 '+M('\\mathrm{j}')+'（工程惯例，常数必须正体），实部写 '+M('\\mathrm{Re}(s)')+'；\n'+
+    '· 单位一律正体：'+M('\\mathrm{kHz}')+'、'+M('\\mathrm{ms}')+'、'+M('\\mathrm{rad/s}')+'；\n'+
+    '· 初始条件用 '+M('0^-')+' 而不是 '+M('0^+')+'，变换对用 '+M('\\leftrightarrow')+' 而不是等号；\n'+
+    '· 常数与算子：'+M('\\mathrm{e}')+'（自然底）、'+M('\\pi')+'（圆周率）、'+M('\\mathrm{d}')+'（微分）按标准用正体；\n'+
+    '· 卷积用 '+M('*')+'，收敛域写 '+M('\\mathrm{Re}(s)>-a')+'。\n\n'+
+    '页面上所有数学都交给 KaTeX 排版，公式块外不会出现裸 LaTeX 或 Unicode 上下标。';
+}
+function solveAnswer(q){
+  return '完整解析：\n\n'+q.exp+'\n\n正确答案是 '+String.fromCharCode(65+q.a)+'. '+q.opts[q.a]+
+    '\n\n（看完解析再作答时，掌握度统计仍会照常记录，心里有数就好。）';
+}
+function localAnswer(text){
+  const q=pool[idx]; if(!q) return '先点「开始诊断」，我才有题目可以陪你看。';
+  const t=text.toLowerCase();
+  if(/提示|hint|思路|怎么做|不会|卡住|从哪|入手|再给/.test(t)) return hintAnswer(q);
+  if(/解析|答案|为什么|详解|完整|对错|求解|推导|告诉/.test(t)) return solveAnswer(q);
+  if(/前置|基础|先学|prerequisite|根/.test(t)) return prereqAnswer(q);
+  if(/选项|选了|错在哪|其他|排除/.test(t)) return optionsAnswer(q);
+  if(/符号|公式|写法|规范|记号|latex|正体/.test(t)) return formulaAnswer(q);
+  if(/知识点|概念|讲讲|是什么|定义|原理|没懂|再说|换个/.test(t)) return conceptAnswer(q);
+  if(/图形|图|波形|频谱|框图|零点|极点/.test(t)){
+    return q.hasFig? '本题的图是随题目参数实时绘制的。读图时先抓三件事：\n'+
+      '1）横轴是什么（'+M('t')+'、'+M('\\omega')+' 还是 '+M('\\mathrm{Re}(s)')+'）；\n'+
+      '2）图上标了哪些数值（宽度、周期、间隔、极点位置）；\n'+
+      '3）这些数值对应哪个定理或性质。\n\n'+q.figCap+'\n\n'+hintAnswer(q)
+      : '本题没有配图。想练图形题的话，回首页确认「含图形题」已勾选，再开始一轮。';
+  }
+  return '我可以帮你：给递进提示、讲知识点、查前置依赖、分析选项、说明符号规范、看完整解析。\n\n'+
+    '直接点下面的快捷按钮最省事，也可以把你的具体疑问打出来，比如「为什么时移只改相位」。'+
+    (tutorAiCfg&&tutorAiCfg.endpoint? '' : '\n\n（现在是内置离线讲解；想要开放式追问可以在首页「AI 讲解设置」接入模型。）');
+}
+
+/* ---------- 可选 AI 接入（OpenAI 兼容） ---------- */
+function aiContext(q){
+  const kp=curKp(q), L=KP_LESSONS[q.kp];
+  const pre=kp.prereq.map(id=>KPS.find(k=>k.id===id).name).join('、')||'无';
+  const ans=state.answers[q.id];
+  return '你在辅导一名学习《信号与系统》（郑君里第三版）的学生，当前只讨论这道题。\n'+
+    '【题目】'+q.q+'\n【选项】'+q.opts.map((o,i)=>String.fromCharCode(65+i)+'. '+o).join('；')+
+    '\n【正确答案】'+String.fromCharCode(65+q.a)+'\n【解析】'+q.exp+
+    '\n【知识点】'+kp.name+'\n【前置知识点】'+pre+
+    (L? '\n【知识点讲解】'+L.brief+' 要点：'+L.points.join('；') : '')+
+    '\n【学生作答】'+(ans? (ans.correct?'已答对':'答错，选了 '+String.fromCharCode(65+ans.chosen)):'尚未作答')+
+    '\n\n要求：用中文；数学符号用 LaTeX 并放在 \\( ... \\) 里；函数名与单位用 \\mathrm{}；'+
+    '虚数单位用正体 \\mathrm{j}；常数 e、π 与微分 d 也用正体；先给思路再给结论；学生没明确要求答案时不要直接说出正确选项；'+
+    '不要输出 Markdown 标题或代码块。';
+}
+async function aiAnswer(text){
+  const q=pool[idx]; if(!q) return localAnswer(text);
+  const messages=[{role:'system',content:aiContext(q)}];
+  tutorMsgs.filter(m=>m.role==='me'||m.role==='ai').slice(-6).forEach(m=>
+    messages.push({role:m.role==='me'?'user':'assistant',content:m.text.replace(/\\\(([\s\S]*?)\\\)/g,'$1')}));
+  messages.push({role:'user',content:text});
+  const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),25000);
+  try{
+    const r=await fetch(tutorAiCfg.endpoint,{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tutorAiCfg.key},
+      body:JSON.stringify({model:tutorAiCfg.model||'gpt-4o-mini',messages:messages,temperature:0.4}),
+      signal:ctrl.signal});
+    clearTimeout(timer);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const out=j&&j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+    if(!out||typeof out!=='string') throw new Error('返回内容为空');
+    return out.trim();
+  }catch(e){
+    clearTimeout(timer);
+    return 'AI 接口没连上（'+e.message+'），先用内置讲解回答：\n\n'+localAnswer(text);
+  }
+}
+async function tutorSend(){
+  if(tutorBusy) return;
+  const inp=document.getElementById('tutor-input'); if(!inp) return;
+  const text=inp.value.trim(); if(!text) return;
+  inp.value=''; tutorPush('me',text);
+  const think=document.getElementById('tutor-log');
+  const typing=document.createElement('div'); typing.className='msg sys typing'; typing.textContent='正在思考…';
+  if(think) think.appendChild(typing);
+  tutorBusy=true;
+  let reply;
+  if(tutorAiCfg&&tutorAiCfg.endpoint&&tutorAiCfg.key) reply=await aiAnswer(text);
+  else reply=localAnswer(text);
+  tutorBusy=false; if(typing.parentNode) typing.parentNode.removeChild(typing);
+  tutorPush('ai',reply);
+}
+
+/* ---------- AI 设置 ---------- */
+function toggleAiSet(){
+  const el=document.getElementById('ai-set'); if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+  applyAiBadge();
+}
+function readAiForm(prefix){
+  const ep=document.getElementById(prefix==='home'?'ai-endpoint':'tutor-ep');
+  const key=document.getElementById(prefix==='home'?'ai-key':'tutor-key');
+  const model=document.getElementById(prefix==='home'?'ai-model':'tutor-model');
+  return {endpoint:(ep&&ep.value||'').trim(),key:(key&&key.value||'').trim(),
+          model:(model&&model.value||'').trim()};
+}
+function setAiStatus(s){ const el=document.getElementById('ai-status'); if(el) el.textContent=s; }
+function saveAiCfg(){
+  const c=readAiForm('home');
+  if(!c.endpoint){ tutorAiCfg=null; storeAiCfg(); applyAiBadge(); setAiStatus('已恢复内置讲解'); return; }
+  tutorAiCfg=c; storeAiCfg(); applyAiBadge(); setAiStatus('已保存，做题时生效');
+}
+async function testAiCfg(){
+  const c=readAiForm('home');
+  if(!c.endpoint||!c.key){ setAiStatus('请先填接口地址和 Key'); return; }
+  setAiStatus('测试中…');
+  const old=tutorAiCfg; tutorAiCfg=c;
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),12000);
+  try{
+    const r=await fetch(c.endpoint,{method:'POST',headers:{'Content-Type':'application/json',
+      'Authorization':'Bearer '+c.key},body:JSON.stringify({model:c.model||'gpt-4o-mini',
+      messages:[{role:'user',content:'回复「连接正常」两个字即可'}],max_tokens:16}),signal:ctrl.signal});
+    clearTimeout(timer);
+    setAiStatus(r.ok? '连接正常':'接口返回 '+r.status);
+  }catch(e){ clearTimeout(timer); setAiStatus('连接失败：'+e.message); }
+  finally { tutorAiCfg=old; }
+}
+function tutorSaveAi(){
+  const c=readAiForm('tutor');
+  if(!c.endpoint||!c.key){ tutorPush('sys','接口地址和 Key 都要填；留空则继续用内置讲解。'); return; }
+  tutorAiCfg=c; storeAiCfg(); applyAiBadge();
+  tutorPush('sys','已接入 AI，之后的提问会发给该模型。点「改用内置讲解」可切回。');
+}
+function tutorUseLocal(){
+  tutorAiCfg=null; storeAiCfg(); applyAiBadge();
+  tutorPush('sys','已切回内置离线讲解。');
+}
+
+
+/* ---------- 浮层内切换 AI 设置 ---------- */
+function toggleTutorSet(){
+  const el=document.getElementById('tutor-set'); if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
+  applyAiBadge();
+}
+
+/* ================= 启动 ================= */
+load();
+loadAiCfg();
+buildCfgUI();
+applyCfg();
+applyAiBadge();
+tutorInitQuick();
+katexGuard();
+renderHistory();
+</script>
+</body>
+</html>
