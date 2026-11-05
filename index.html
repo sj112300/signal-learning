@@ -89,6 +89,17 @@ h1{font-size:22px;margin-bottom:4px}
 .chap-h{font-size:13px;font-weight:700;color:var(--muted);margin:16px 0 4px;
   padding-bottom:4px;border-bottom:1px solid var(--line)}
 .note{font-size:12px;color:var(--muted);margin-top:8px}
+/* 错因画像（阶段 A） */
+.mis-row{border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:0 10px 10px 0;
+  padding:12px 16px;margin-bottom:10px;background:#fff}
+.mis-row.hit{border-left-color:var(--bad);background:#fffafa}
+.mis-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;margin-bottom:6px}
+.mis-rank{display:inline-flex;width:20px;height:20px;border-radius:50%;background:#eef2f7;color:#475569;
+  align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:0 0 20px}
+.mis-row p{font-size:13px;color:#374151;margin:4px 0;line-height:1.65}
+.mis-row .mis-kp{color:var(--muted);font-size:12px}
+.mis-inline{display:block;margin:8px 0;padding:8px 10px;background:#fff;border:1px dashed var(--warn);
+  border-radius:8px;font-size:13px;color:#92400e;line-height:1.6}
 /* 出题配置 */
 .cfg-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start}
 .cfg-col{flex:1;min-width:200px}
@@ -198,7 +209,7 @@ h1{font-size:22px;margin-bottom:4px}
     <div class="notice">
       这是用于验证效果的最小原型：15 个知识点、39 个参数化题模（31 文字 + 8 图形），只覆盖第 1–4 章。
       每轮按下方配置即时生成新题（数值、符号、选项顺序都会变化），不再使用固定题目列表。
-      完成诊断后给出薄弱点分析、前置依赖检查和学习资料，并可针对薄弱点再练一轮。数据仅保存在本机浏览器中。
+      诊断不只看对与错：每个错误选项都绑定了具体错因，报告会给出<b>错因画像</b>、前置依赖检查、针对性处方和学习资料，并可针对薄弱点再练一轮。数据仅保存在本机浏览器中。
     </div>
     <div class="card">
       <h3 style="margin-bottom:10px">出题配置 <span style="font-size:12px;font-weight:400;color:var(--muted)">每轮即时生成，配置自动记忆</span></h3>
@@ -235,11 +246,11 @@ h1{font-size:22px;margin-bottom:4px}
       <h3 style="margin-bottom:8px">它怎么工作</h3>
       <p style="font-size:14px;color:#374151">
         ① 按配置生成一轮新题（可随时结束）→
-        ② 系统按知识点统计掌握度，标记薄弱点 →
-        ③ 检查薄弱点的<b>前置依赖</b>（比如「卷积定理」薄弱时，先看「卷积积分」是否也没掌握，从根上补）→
-        ④ 给出每个薄弱点的学习资料 →
+        ② 答错时记录<b>错在哪一步</b>，同时按知识点统计掌握度、标记薄弱点 →
+        ③ 生成<b>错因画像</b>：哪类错最常犯、涉及哪些知识点、对应的改正动作是什么 →
+        ④ 检查薄弱点的<b>前置依赖</b>（比如「卷积定理」薄弱时，先看「卷积积分」是否也没掌握），按「先补前置、再补本体」排序处方 →
         ⑤ 点击「再练一轮薄弱点」按薄弱范围再生成一批新题，完成迭代闭环。<br>
-        ⑥ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、追问错因，逐步展开而不直接剧透答案。
+        ⑥ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、定位错因，逐步展开而不直接剧透答案。
       </p>
       <div style="margin-top:20px">
         <button class="btn btn-primary" onclick="startQuiz()">开始诊断</button>
@@ -357,6 +368,74 @@ const KPS = [
  {id:'k15', ch:4, name:'系统函数与稳定性', prereq:['k14','k05'],
   res:[['B站搜索：系统函数 极点 稳定性','https://search.bilibili.com/all?keyword=信号与系统%20系统函数%20稳定性']]},
 ];
+
+/* ================= 阶段 A：错因分类法（misconception taxonomy） =================
+   诊断不再只使用「对 / 错」这一个信号。每个干扰项都绑定一个具体错因，
+   答错时记录的是「错在哪一步」，报告据此聚合为错因画像并给出针对性处方。
+   分类依据：郑君里教材第 1–4 章常见难点，以及 threshold concepts、
+   时频域映射错误、卷积积分限、ROC 漏写、套路迁移失败等学习难点调研结论。 */
+const MIS = {
+ m01:{name:'概念对象混淆', desc:'把两个相邻概念当成同一个（能量与功率、零输入与零状态、冲激响应与阶跃响应、离散谱与连续谱）。',
+      fix:'回到定义：用一句话写出两者的判别式，再各举一个例子，做完立刻互相对照。'},
+ m02:{name:'性质 / 公式记反', desc:'时移、尺度、微分、卷积定理等公式的符号、系数或方向记反。',
+      fix:'只背一条最基础的公式，其余由它推导；重点核对正负号与尺度变换里的系数。'},
+ m03:{name:'时频域映射错误', desc:'把时域平移当成频域平移、把「时域卷积对应频域相乘」搞反，或把幅度变化与相位变化混淆。',
+      fix:'画两栏表：左边写时域操作，右边写频域结果，逐条对应后再做题。'},
+ m04:{name:'线性 / 时不变判据混淆', desc:'把系数里含时间变量判成非线性、把常数偏置判成线性，或按字面理解「时不变」。',
+      fix:'分两步独立判断：先只查对 x 是否一次齐次，再只查输出是否随输入同步延迟，两步互不干扰。'},
+ m05:{name:'积分限与重叠区间', desc:'卷积积分上下限写死、忽略初始负时刻、分段区间没跟着时间变量移动。',
+      fix:'用图解法五步（换元、翻转、平移、相乘、积分），先把积分区间写成 t 的函数再动笔积分。'},
+ m06:{name:'常数、系数与单位', desc:'漏掉系数、把最高频率当成抽样频率、角频率与频率混用，或把公共周期里的倍数记错。',
+      fix:'做完先做量纲检查，再代入一个简单数值（例如取参数为 1）回代验算。'},
+ m07:{name:'收敛域与存在条件', desc:'漏写收敛域、把收敛域方向判反，或把「绝对可积」当成必要条件。',
+      fix:'每个拉氏变换对都连着收敛域一起记，并写出使它收敛的不等式。'},
+ m08:{name:'极点与稳定性判据', desc:'用零点判稳定、把虚轴极点当成稳定、忽略「只要一个右半平面极点就不稳定」。',
+      fix:'只数极点：全在左半平面则稳定；有任何一个在右侧则不稳定；只在虚轴上则临界稳定。'},
+ m09:{name:'读图与表征转换', desc:'波形宽度、谱线间隔、冲激强度、零极点位置读错，或把图形特征直接当成结论。',
+      fix:'先把图上标出的数值逐个抄下来，再一一对应到定理或性质，不要跳步。'},
+ m10:{name:'代入与代数计算', desc:'把自变量取零代入采样性质、忽略冲激强度、符号或算术失误。',
+      fix:'每一步代值单独写一行，最后把结果代回原式检查一次。'},
+ m11:{name:'前置数学知识缺口', desc:'复数运算、微积分、三角与级数基础不牢，导致变换对与推导跟不上。',
+      fix:'先补对应的数学工具（复数指数、分部积分、等比级数），再回到本题。'},
+ m12:{name:'套路迁移失败', desc:'换个参数或换种表征（文字与图形互换）就不会，靠记答案而不是靠判据。',
+      fix:'用同一判据换三组参数重做，并用自己的话把判据复述一遍。'}
+};
+/* 题模 → 三个干扰项各自绑定的错因（顺序与 gen() 返回的 distractors 一致）。
+   未登记的题模走兜底规则，保证每个错误选项都有错因。 */
+const MIS_MAP = {
+ t01:['m01','m01','m12'], t02:['m06','m06','m01'], t03:['m02','m02','m01'],
+ t04:['m10','m10','m02'], t05:['m04','m04','m04'], t06:['m04','m04','m04'],
+ t07:['m01','m01','m01'], t08:['m06','m05','m06'], t09:['m01','m01','m01'],
+ t10:['m04','m06','m06'], t11:['m05','m05','m05'], t12:['m02','m02','m02'],
+ t13:['m01','m01','m01'], t14:['m01','m01','m01'], t15:['m02','m02','m01'],
+ t16:['m01','m01','m01'], t17:['m02','m03','m03'], t18:['m06','m02','m02'],
+ t19:['m03','m01','m01'], t20:['m01','m01','m06'], t21:['m06','m06','m06'],
+ t22:['m01','m01','m01'], t23:['m07','m07','m07'], t24:['m01','m01','m01'],
+ t25:['m02','m02','m02'], t26:['m02','m03','m02'], t27:['m06','m10','m01'],
+ t28:['m08','m08','m01'], t29:['m08','m08','m08'], t30:['m08','m08','m08'],
+ t31:['m08','m08','m08'],
+ g01:['m01','m01','m12'], g02:['m09','m10','m06'], g03:['m04','m04','m04'],
+ g04:['m05','m05','m05'], g05:['m06','m06','m01'], g06:['m06','m06','m09'],
+ g07:['m09','m01','m01'], g08:['m08','m08','m08']
+};
+/* 取某题模三个干扰项的错因标签。优先级：题模输出里显式给出 > 登记表 > 按题型兜底。 */
+function misFor(tpl, n, raw){
+  const r=raw && raw.mis;
+  if(Array.isArray(r) && r.length===n && r.every(x=>MIS[x])) return r.slice();
+  const m=MIS_MAP[tpl.id];
+  if(m && m.length===n && m.every(x=>MIS[x])) return m.slice();
+  const byType={concept:'m01',calc:'m10',property:'m02',system:'m04'};
+  const base=byType[tpl.type]||'m01';
+  return Array.from({length:n},(_,i)=> (tpl.fig&&i===0)? 'm09' : base);
+}
+/* Q-matrix 的一行：主知识点权重 1，直接前置知识点权重 0.35。
+   一道题答错，前置知识点也收到一份较弱的证据，用于错因画像归因与讲解提示。 */
+function qkps(kid){
+  const k=KPS.find(x=>x.id===kid);
+  const row=[{id:kid,w:1}];
+  (k?k.prereq:[]).forEach(p=>row.push({id:p,w:0.35}));
+  return row;
+}
 
 /* ================= 参数化图形题干（内联 SVG，零外部依赖） ================= */
 /* 图形随题目参数实时绘制：脉宽、周期、极点位置都跟着随机数变。
@@ -1166,12 +1245,17 @@ function normalizeQuestion(tpl, d, raw){
   if(whyWrong!==undefined && (!Array.isArray(whyWrong)||whyWrong.length!==3)) return null;
   const texts=[q,correct,...ds,exp,...(figCap?[figCap]:[]),...(hints||[])];
   for(const t of texts){ if(texIssues(t).length) return null; }   /* 符号不合规：丢弃 */
-  let opts=[correct,...ds];
-  if(new Set(opts.map(stripTex)).size!==4) return null;
-  for(let i=3;i>0;i--){ const j=ri(0,i); const tmp=opts[i]; opts[i]=opts[j]; opts[j]=tmp; }
-  const a=opts.indexOf(correct);
+  /* 阶段 A：把每个干扰项和它的错因绑成一个整体再洗牌，
+     洗牌后 q.mis[i] 始终对应 opts[i]，正确项位置 q.a 上的错因为 null。 */
+  const tags=misFor(tpl,3,raw);
+  const entries=[{text:correct,mis:null}].concat(ds.map((x,i)=>({text:x,mis:tags[i]})));
+  if(new Set(entries.map(e=>stripTex(e.text))).size!==4) return null;
+  for(let i=3;i>0;i--){ const j=ri(0,i); const tmp=entries[i]; entries[i]=entries[j]; entries[j]=tmp; }
+  const a=entries.findIndex(e=>e.mis===null);
   if(a<0) return null;
-  const out={kp:tpl.kp, type:tpl.type, d:d, q:q, opts:opts, a:a, exp:exp};
+  const opts=entries.map(e=>e.text), mis=entries.map(e=>e.mis);
+  const out={kp:tpl.kp, type:tpl.type, d:d, q:q, opts:opts, a:a, exp:exp,
+             mis:mis, kps:qkps(tpl.kp)};
   if(fig!==undefined) { out.fig=fig; out.figCap=figCap; out.hasFig=true; }
   if(hints) out.hints=hints;
   if(whyWrong) out.whyWrong=whyWrong;
@@ -1232,7 +1316,7 @@ function generateQuestions(cfg, avoid){
   }
   out.forEach(q=>{
     q.id=state.nextId++;
-    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a};
+    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps};
   });
   state.lastSigs=out.map(signature);
   state.relaxed=relaxed;
@@ -1317,6 +1401,37 @@ function diagStatus(kid){
   return long;
 }
 function weakKPs(){ return KPS.filter(k=>['bad','mid'].includes(diagStatus(k.id).key)); }
+
+/* 阶段 A：错因统计。累计口径来自 state.answers（答题时已把命中的错因写进去，
+   因此旧版历史记录没有 mis 字段时也能安全兼容）；本轮口径来自 roundLog。 */
+function misStats(){
+  const all={}, round={};
+  const bump=(bag,id,kp,qid)=>{
+    if(!id||!MIS[id]) return;
+    if(!bag[id]) bag[id]={n:0,kps:{},qids:[]};
+    bag[id].n++;
+    if(kp) bag[id].kps[kp]=(bag[id].kps[kp]||0)+1;
+    if(qid!==undefined && bag[id].qids.length<8) bag[id].qids.push(qid);
+  };
+  Object.keys(state.answers).forEach(id=>{
+    const a=state.answers[id], q=state.qbank[id];
+    if(a.correct || !a.mis) return;
+    bump(all,a.mis,q?q.kp:null,+id);
+  });
+  (state.roundLog||[]).forEach(r=>{ if(!r.correct && r.mis) bump(round,r.mis,r.kp,r.qid); });
+  return {all:all, round:round};
+}
+/* 按 Q-matrix 加权后的知识点证据：主知识点计 1，前置知识点计 0.35。
+   用在报告里做补充观察，不改变 weakKPs 的判定（本轮错题必进处方的保证不受影响）。 */
+function kpWeighted(kid){
+  let n=0,c=0;
+  Object.keys(state.answers).forEach(id=>{
+    const q=state.qbank[id]; if(!q) return;
+    const row=(q.kps||[{id:q.kp,w:1}]).find(x=>x.id===kid); if(!row) return;
+    n+=row.w; if(state.answers[id].correct) c+=row.w;
+  });
+  return {n:n, c:c, rate:n? c/n : null};
+}
 
 /* ================= 屏幕切换 ================= */
 function show(id){
@@ -1441,8 +1556,9 @@ function choose(i){
   if(opts[0].dataset.done) return;
   opts[0].dataset.done='1';
   const ok = i===q.a;
-  state.answers[q.id]={correct:ok, chosen:i};
-  state.roundLog.push({qid:q.id, kp:q.kp, correct:ok});
+  const mis = ok? null : (q.mis && q.mis[i]) || null;
+  state.answers[q.id]={correct:ok, chosen:i, mis:mis};
+  state.roundLog.push({qid:q.id, kp:q.kp, correct:ok, chosen:i, mis:mis});
   save();
   opts.forEach((o,j)=>{ o.style.cursor='default';
     if(j===q.a) o.classList.add('right');
@@ -1450,7 +1566,10 @@ function choose(i){
   });
   const fb=document.getElementById('qfb');
   fb.className='feedback '+(ok?'ok':'bad');
-  fb.innerHTML='<b>'+(ok?'回答正确':'回答错误，正确答案是 '+String.fromCharCode(65+q.a))+'</b><span class="explain">'+q.exp+'</span>';
+  fb.innerHTML='<b>'+(ok?'回答正确':'回答错误，正确答案是 '+String.fromCharCode(65+q.a))+'</b>'+
+    (!ok && mis && MIS[mis]? '<span class="mis-inline"><b>错因定位：'+MIS[mis].name+'</b>　'+MIS[mis].desc+
+      '<br>改正动作：'+MIS[mis].fix+'</span>' : '')+
+    '<span class="explain">'+q.exp+'</span>';
   t2e(fb);
   document.getElementById('btn-next').style.display = idx<pool.length-1 ? 'inline-block':'none';
   if(idx===pool.length-1) fb.insertAdjacentHTML('beforeend',
@@ -1489,6 +1608,8 @@ function showReport(){
 
   let html='<div class="summary '+cls+'">'+msg+'</div>';
 
+  const ms=misStats();
+
   /* 掌握度总览（按章分组） */
   html+='<div class="card"><h3 style="margin-bottom:6px">知识点掌握度</h3>';
   [1,2,3,4].forEach(ch=>{
@@ -1508,6 +1629,33 @@ function showReport(){
       '</div>';
     });
   });
+  html+='</div>';
+
+  /* 错因画像（阶段 A）：先看「错在哪一步」，再看「哪个知识点」 */
+  const misList=Object.keys(ms.all).sort((a,b)=>ms.all[b].n-ms.all[a].n);
+  const rMisN=Object.values(ms.round).reduce((s,x)=>s+x.n,0);
+  html+='<div class="card"><h3 style="margin-bottom:6px">错因画像</h3>'+
+    '<div class="note" style="margin:0 0 10px">每个错误选项都绑定了一个具体错因，答错时记录的是「错在哪一步」。'+
+    '下面按累计出现次数排序，本轮新增 '+rMisN+' 次；处方会据此给出针对性动作，而不是笼统的「多刷题」。</div>';
+  if(!misList.length){
+    html+='<p style="font-size:14px;color:#374151">还没有记录到错因（本轮全对，或尚未作答）。错一次之后这里就会开始积累。</p>';
+  } else {
+    misList.forEach((id,i)=>{
+      const m=ms.all[id], M=MIS[id], rn=ms.round[id]?ms.round[id].n:0;
+      const kpNames=Object.keys(m.kps).sort((a,b)=>m.kps[b]-m.kps[a]).slice(0,3)
+        .map(x=>{ const k=KPS.find(z=>z.id===x); return k?k.name:x; });
+      html+='<div class="mis-row'+(rn?' hit':'')+'">'+
+        '<div class="mis-h"><span class="mis-rank">'+(i+1)+'</span><b>'+M.name+'</b>'+
+        '<span class="pill '+(i===0?'bad':'warn')+'">累计 '+m.n+' 次</span>'+
+        (rn? '<span class="pill bad">本轮 +'+rn+'</span>':'')+'</div>'+
+        '<p>'+M.desc+'</p><p><b>怎么改：</b>'+M.fix+'</p>'+
+        (kpNames.length? '<p class="mis-kp">常出现在：'+kpNames.join('、')+'</p>':'')+'</div>';
+    });
+    /* 干扰项有效性：从未被触发的错因，说明对应干扰项太容易被排除，可后续替换 */
+    const unused=Object.keys(MIS).filter(x=>!ms.all[x]);
+    if(unused.length) html+='<div class="note">尚未触发的错因：'+unused.map(x=>MIS[x].name).join('、')+
+      '。若某类干扰项长期无人选择，说明它太容易被排除，后续可替换成更有迷惑性的同类选项。</div>';
+  }
   html+='</div>';
 
   /* 薄弱点处方 */
@@ -1531,6 +1679,16 @@ function showReport(){
       }
       const roundWrong=(state.roundLog||[]).filter(r=>r.kp===k.id && !r.correct);
       if(roundWrong.length) html+='<p><b>本轮错题：</b>第 '+roundWrong.map(r=>r.qid).join('、')+' 题，建议先对照解析弄清错因。</p>';
+      /* 按错因聚合处方：同一知识点下，优先改掉出现次数最多的那一类错 */
+      const kpMis=Object.keys(ms.all).filter(mid=>ms.all[mid].kps[k.id])
+        .sort((a,b)=>ms.all[b].kps[k.id]-ms.all[a].kps[k.id]).slice(0,2);
+      if(kpMis.length) html+='<p><b>高频错因：</b>'+kpMis.map(mid=>
+        MIS[mid].name+'（'+ms.all[mid].kps[k.id]+' 次）— '+MIS[mid].fix).join('；')+'</p>';
+      const ws=kpWeighted(k.id);
+      if(ws.n) html+='<p class="note">计入前置依赖后的加权表现：'+
+        ws.c.toFixed(2)+' / '+ws.n.toFixed(2)+'（约 '+Math.round(ws.rate*100)+'%）。'+
+        (s.n && ws.rate < s.rate-0.15? '明显低于本体累计值，拖后腿的可能不是本体，而是前置知识点。'
+                                   : '用于观察前置知识点是否也在拖后腿。')+'</p>';
       const wrongQs=Object.values(state.qbank).filter(q=>q.kp===k.id && state.answers[q.id] && !state.answers[q.id].correct);
       if(wrongQs.length) html+='<p>累计错题：'+wrongQs.map(q=>'第 '+q.id+' 题').join('、')+'。</p>';
       k.res.forEach(r=>{ html+='<p><a href="'+r[1]+'" target="_blank">'+r[0]+' ↗</a></p>'; });
@@ -1620,7 +1778,7 @@ function tutorReset(){ tutorMsgs=[]; tutorHintLevel=0; tutorGreeted=false;
   tutorPush('ai','已清空。我们重新来看当前这道题吧。'); }
 
 const QUICKS=[['hint','给个提示'],['concept','讲这个知识点'],['prereq','先补前置'],
-              ['options','选项错在哪'],['formula','符号怎么写'],['solve','看完整解析']];
+              ['mis','我为什么错'],['options','选项错在哪'],['formula','符号怎么写'],['solve','看完整解析']];
 function tutorInitQuick(){
   const box=document.getElementById('tutor-quick'); if(!box) return;
   box.innerHTML=QUICKS.map(q=>'<button onclick="tutorQuick(\''+q[0]+'\')">'+q[1]+'</button>').join('');
@@ -1628,11 +1786,11 @@ function tutorInitQuick(){
 function tutorQuick(kind){
   const q=pool[idx]; if(!q) return;
   if(kind==='hint'){ tutorPush('me','给个提示'); tutorPush('ai',hintAnswer(q)); return; }
-  const map={concept:'讲讲这个知识点',prereq:'我需要先补哪些前置？',options:'其他选项错在哪？',
-             formula:'这题的符号怎么写才规范？',solve:'直接看完整解析吧'};
+  const map={concept:'讲讲这个知识点',prereq:'我需要先补哪些前置？',mis:'我这题为什么错了？',
+             options:'其他选项错在哪？',formula:'这题的符号怎么写才规范？',solve:'直接看完整解析吧'};
   tutorPush('me',map[kind]||kind);
-  const t=({concept:()=>conceptAnswer(q),prereq:()=>prereqAnswer(q),options:()=>optionsAnswer(q),
-             formula:()=>formulaAnswer(q),solve:()=>solveAnswer(q)})[kind];
+  const t=({concept:()=>conceptAnswer(q),prereq:()=>prereqAnswer(q),mis:()=>misAnswer(q),
+             options:()=>optionsAnswer(q),formula:()=>formulaAnswer(q),solve:()=>solveAnswer(q)})[kind];
   if(t) tutorPush('ai',t());
 }
 
@@ -1679,7 +1837,23 @@ function optionsAnswer(q){
   if(chosen===null||chosen===undefined)
     return t+'\n\n你还没作答。先告诉我你倾向选哪个，我针对性讲它错在哪；或者直接点「给个提示」。';
   if(chosen===q.a) return t+'\n\n你选的是正确答案 '+String.fromCharCode(65+q.a)+'。\n\n'+q.exp;
-  return t+'\n\n你选了 '+String.fromCharCode(65+chosen)+'，正确答案是 '+String.fromCharCode(65+q.a)+'。\n\n'+q.exp;
+  const tag=(ans.mis&&MIS[ans.mis])? MIS[ans.mis] : null;
+  return t+'\n\n你选了 '+String.fromCharCode(65+chosen)+'，正确答案是 '+String.fromCharCode(65+q.a)+'。'+
+    (tag? '\n\n【错因定位】'+tag.name+'：'+tag.desc+'\n改正动作：'+tag.fix : '')+'\n\n'+q.exp;
+}
+/* 阶段 A：针对错因的讲解。既说清本题命中的错因，也给出累计最常犯的几类。 */
+function misAnswer(q){
+  const ms=misStats(), a=state.answers[q.id];
+  const cur=(a && !a.correct && a.mis && MIS[a.mis])? MIS[a.mis] : null;
+  let t=cur? '这道题你刚才选的是 '+String.fromCharCode(65+a.chosen)+'，命中的错因是「'+cur.name+'」。\n'+
+            cur.desc+'\n\n怎么改：'+cur.fix+'\n\n'
+          : '这道题你还没答错（或还没作答）。我先说说本题各干扰项埋的错因：\n';
+  const tags=(q.mis||[]).map((m,i)=> m&&MIS[m]? String.fromCharCode(65+i)+'. '+MIS[m].name : null).filter(Boolean);
+  if(tags.length) t+='本题干扰项对应的错因：\n'+tags.join('\n');
+  const rank=Object.keys(ms.all).sort((x,y)=>ms.all[y].n-ms.all[x].n).slice(0,3);
+  if(rank.length) t+='\n\n你累计最常犯的三类错：'+rank.map(x=>MIS[x].name+'（'+ms.all[x].n+' 次）').join('、')+
+    '。建议先盯住最高频那一类，按上面的动作改一次，再回来重做同类题验证。';
+  return t;
 }
 function formulaAnswer(q){
   return '这门课符号很讲究，本题相关约定：\n'+
@@ -1698,6 +1872,7 @@ function solveAnswer(q){
 function localAnswer(text){
   const q=pool[idx]; if(!q) return '先点「开始诊断」，我才有题目可以陪你看。';
   const t=text.toLowerCase();
+  if(/错因|为什么错|老错|总错|总犯|哪类错|误区|总在这栽/.test(t)) return misAnswer(q);
   if(/提示|hint|思路|怎么做|不会|卡住|从哪|入手|再给/.test(t)) return hintAnswer(q);
   if(/解析|答案|为什么|详解|完整|对错|求解|推导|告诉/.test(t)) return solveAnswer(q);
   if(/前置|基础|先学|prerequisite|根/.test(t)) return prereqAnswer(q);
@@ -1727,8 +1902,13 @@ function aiContext(q){
     '\n【知识点】'+kp.name+'\n【前置知识点】'+pre+
     (L? '\n【知识点讲解】'+L.brief+' 要点：'+L.points.join('；') : '')+
     '\n【学生作答】'+(ans? (ans.correct?'已答对':'答错，选了 '+String.fromCharCode(65+ans.chosen)):'尚未作答')+
+    '\n【本题各干扰项绑定的错因】'+(q.mis||[]).map((m,i)=> m&&MIS[m]?
+      String.fromCharCode(65+i)+'='+MIS[m].name+'（'+MIS[m].desc+'）':'').filter(Boolean).join('；')+
+    '\n【学生本次错因】'+(ans&&ans.mis&&MIS[ans.mis]?
+      MIS[ans.mis].name+'：'+MIS[ans.mis].desc+'；建议动作：'+MIS[ans.mis].fix : '本题尚未命中错因')+
     '\n\n要求：用中文；数学符号用 LaTeX 并放在 \\( ... \\) 里；函数名与单位用 \\mathrm{}；'+
-    '虚数单位用正体 \\mathrm{j}；常数 e、π 与微分 d 也用正体；先给思路再给结论；学生没明确要求答案时不要直接说出正确选项；'+
+    '虚数单位用正体 \\mathrm{j}；常数 e、π 与微分 d 也用正体；先给思路再给结论；'+
+    '学生答错时优先针对上面命中的错因纠正，不要泛泛而谈；学生没明确要求答案时不要直接说出正确选项；'+
     '不要输出 Markdown 标题或代码块。';
 }
 async function aiAnswer(text){
