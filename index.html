@@ -100,6 +100,12 @@ h1{font-size:22px;margin-bottom:4px}
 .mis-row .mis-kp{color:var(--muted);font-size:12px}
 .mis-inline{display:block;margin:8px 0;padding:8px 10px;background:#fff;border:1px dashed var(--warn);
   border-radius:8px;font-size:13px;color:#92400e;line-height:1.6}
+/* 隔离题 / 综合题对比 */
+.scope-row{display:grid;grid-template-columns:170px 100px 100px minmax(0,1fr);gap:10px;
+  padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px;align-items:start}
+.scope-row:last-child{border-bottom:none}
+.scope-head{font-weight:700;color:var(--muted);font-size:12px}
+.scope-v{color:#374151;line-height:1.6}
 /* 出题配置 */
 .cfg-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start}
 .cfg-col{flex:1;min-width:200px}
@@ -435,6 +441,30 @@ function qkps(kid){
   const row=[{id:kid,w:1}];
   (k?k.prereq:[]).forEach(p=>row.push({id:p,w:0.35}));
   return row;
+}
+/* 隔离题 / 综合题：区分「概念没建立」与「会认不会用」。
+   iso = 单知识点、一步可得；int = 跨知识点、多步推导，或需要读图转换表征。
+   未登记的题模：图形题默认 int，其余默认 iso。 */
+const SCOPE_MAP = {
+ t01:'iso',t02:'int',t03:'iso',t04:'iso',t05:'iso',t06:'iso',t07:'iso',t08:'int',
+ t09:'iso',t10:'iso',t11:'int',t12:'iso',t13:'iso',t14:'iso',t15:'iso',t16:'iso',
+ t17:'iso',t18:'iso',t19:'iso',t20:'int',t21:'iso',t22:'iso',t23:'int',t24:'iso',
+ t25:'iso',t26:'iso',t27:'int',t28:'iso',t29:'int',t30:'iso',t31:'int',
+ g01:'iso',g02:'int',g03:'iso',g04:'int',g05:'int',g06:'int',g07:'iso',g08:'iso'
+};
+function scopeFor(tpl){
+  const s=SCOPE_MAP[tpl.id];
+  return (s==='iso'||s==='int')? s : (tpl.fig? 'int':'iso');
+}
+function scopeStat(kid, scope){
+  let n=0,c=0;
+  Object.keys(state.answers).forEach(id=>{
+    const q=state.qbank[id], a=state.answers[id];
+    if(!q || q.kp!==kid) return;
+    if((q.scope||'iso')!==scope) return;
+    n++; if(a.correct) c++;
+  });
+  return {n:n, c:c, rate:n? c/n : null};
 }
 
 /* ================= 参数化图形题干（内联 SVG，零外部依赖） ================= */
@@ -1255,7 +1285,7 @@ function normalizeQuestion(tpl, d, raw){
   if(a<0) return null;
   const opts=entries.map(e=>e.text), mis=entries.map(e=>e.mis);
   const out={kp:tpl.kp, type:tpl.type, d:d, q:q, opts:opts, a:a, exp:exp,
-             mis:mis, kps:qkps(tpl.kp)};
+             mis:mis, kps:qkps(tpl.kp), scope:scopeFor(tpl)};
   if(fig!==undefined) { out.fig=fig; out.figCap=figCap; out.hasFig=true; }
   if(hints) out.hints=hints;
   if(whyWrong) out.whyWrong=whyWrong;
@@ -1316,7 +1346,7 @@ function generateQuestions(cfg, avoid){
   }
   out.forEach(q=>{
     q.id=state.nextId++;
-    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps};
+    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps, scope:q.scope};
   });
   state.lastSigs=out.map(signature);
   state.relaxed=relaxed;
@@ -1557,8 +1587,8 @@ function choose(i){
   opts[0].dataset.done='1';
   const ok = i===q.a;
   const mis = ok? null : (q.mis && q.mis[i]) || null;
-  state.answers[q.id]={correct:ok, chosen:i, mis:mis};
-  state.roundLog.push({qid:q.id, kp:q.kp, correct:ok, chosen:i, mis:mis});
+  state.answers[q.id]={correct:ok, chosen:i, mis:mis, scope:q.scope};
+  state.roundLog.push({qid:q.id, kp:q.kp, correct:ok, chosen:i, mis:mis, scope:q.scope});
   save();
   opts.forEach((o,j)=>{ o.style.cursor='default';
     if(j===q.a) o.classList.add('right');
@@ -1658,6 +1688,32 @@ function showReport(){
   }
   html+='</div>';
 
+  /* 隔离题 / 综合题对比：分清「概念没建立」与「会认不会用」 */
+  const scoped=KPS.filter(k=>scopeStat(k.id,'int').n>0 || scopeStat(k.id,'iso').n>1);
+  html+='<div class="card"><h3 style="margin-bottom:6px">隔离题 / 综合题对比</h3>'+
+    '<div class="note" style="margin:0 0 10px">隔离题只考单个知识点、一步可得；综合题跨知识点、多步推导或需要读图。'+
+    '两者一起看，才能分清是「概念没建立」还是「会认不会用」。</div>';
+  if(!scoped.length){
+    html+='<p style="font-size:14px;color:#374151">样本还不够，再做完一轮后这里会给出对比。</p>';
+  } else {
+    html+='<div class="scope-row scope-head"><span>知识点</span><span>隔离题</span><span>综合题</span><span>判读</span></div>';
+    scoped.forEach(k=>{
+      const scIso=scopeStat(k.id,'iso'), scInt=scopeStat(k.id,'int');
+      let verdict='';
+      if(scIso.n && scInt.n){
+        if(scIso.rate>=0.6 && scInt.rate<0.6) verdict='会认不会用：概念基本掌握，换情境或换表征就卡住，属套路迁移问题，建议同判据换参数、换图形再练。';
+        else if(scIso.rate<0.6 && scInt.rate<0.6) verdict='概念本身没建立：先回定义与要点，别急着刷综合题。';
+        else if(scIso.rate<0.6 && scInt.rate>=0.6) verdict='隔离题反而更差：可能是粗心或猜测，做完逐步复核一遍。';
+        else verdict='两类都稳，可以扩大章节或提高难度。';
+      } else verdict=scInt.n? '暂无隔离题样本':'暂无综合题样本';
+      html+='<div class="scope-row"><span>'+k.name+'</span>'+
+        '<span>'+(scIso.n? scIso.c+'/'+scIso.n+'（'+Math.round(scIso.rate*100)+'%）':'—')+'</span>'+
+        '<span>'+(scInt.n? scInt.c+'/'+scInt.n+'（'+Math.round(scInt.rate*100)+'%）':'—')+'</span>'+
+        '<span class="scope-v">'+verdict+'</span></div>';
+    });
+  }
+  html+='</div>';
+
   /* 薄弱点处方 */
   html+='<div class="card"><h3 style="margin-bottom:6px">薄弱点处方</h3>';
   if(!wk.length){
@@ -1684,6 +1740,9 @@ function showReport(){
         .sort((a,b)=>ms.all[b].kps[k.id]-ms.all[a].kps[k.id]).slice(0,2);
       if(kpMis.length) html+='<p><b>高频错因：</b>'+kpMis.map(mid=>
         MIS[mid].name+'（'+ms.all[mid].kps[k.id]+' 次）— '+MIS[mid].fix).join('；')+'</p>';
+      const scIso=scopeStat(k.id,'iso'), scInt=scopeStat(k.id,'int');
+      if(scIso.n && scInt.n && scIso.rate>=0.6 && scInt.rate<0.6)
+        html+='<p><b>练习侧重：</b>隔离题已过、综合题仍错，优先做变式与跨知识点题，不要重复刷同型隔离题。</p>';
       const ws=kpWeighted(k.id);
       if(ws.n) html+='<p class="note">计入前置依赖后的加权表现：'+
         ws.c.toFixed(2)+' / '+ws.n.toFixed(2)+'（约 '+Math.round(ws.rate*100)+'%）。'+
