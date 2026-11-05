@@ -106,6 +106,26 @@ h1{font-size:22px;margin-bottom:4px}
 .scope-row:last-child{border-bottom:none}
 .scope-head{font-weight:700;color:var(--muted);font-size:12px}
 .scope-v{color:#374151;line-height:1.6}
+/* 阶段 B：置信度自评 / BKT 报告 */
+.conf-box{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;
+  padding:9px 11px;background:#fff;border:1px dashed var(--line);border-radius:8px;font-size:13px}
+.conf-box button{padding:5px 12px;border:1px solid var(--line);border-radius:18px;background:#f8fafc;
+  cursor:pointer;font-size:12.5px;color:#374151}
+.conf-box button:hover{border-color:var(--accent);color:var(--accent)}
+.conf-done{color:var(--ok);font-size:12.5px;line-height:1.6}
+.bkt-row{display:grid;grid-template-columns:170px 78px 72px 84px 88px minmax(0,1fr);gap:8px;
+  padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px;align-items:center}
+.bkt-row:last-child{border-bottom:none}
+.bkt-head{font-weight:700;color:var(--muted);font-size:12px}
+.bkt-p{font-variant-numeric:tabular-nums}
+.eval-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.eval-cell{flex:1;min-width:150px;padding:11px 13px;background:#f8fafc;border:1px solid var(--line);border-radius:9px}
+.eval-cell b{display:block;font-size:19px;color:#1e293b;margin-bottom:2px}
+.eval-cell small{color:var(--muted);font-size:11.5px;line-height:1.55;display:block}
+@media (max-width:640px){
+  .bkt-row{grid-template-columns:1fr 1fr;gap:4px 10px}
+  .bkt-head{display:none}
+}
 /* 出题配置 */
 .cfg-row{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-start}
 .cfg-col{flex:1;min-width:200px}
@@ -203,6 +223,14 @@ h1{font-size:22px;margin-bottom:4px}
   font-family:"Times New Roman","Times",STIXGeneral,STIXTwoText,KaTeX_Main,serif !important;
 }
 .katex .mathnormal,.katex .mathit,.katex .boldsymbol{font-style:italic}
+@media (max-width:640px){
+  .wrap{padding:18px 12px}
+  .cfg-col{flex:1 1 100%;min-width:0}
+  .kp-row{flex-wrap:wrap}
+  .kp-name{flex:1 1 100%}
+  .kp-bar{flex:1 1 100%}
+  .kp-stat{flex:0 0 100%;text-align:left}
+}
 </style>
 </head>
 <body>
@@ -213,9 +241,10 @@ h1{font-size:22px;margin-bottom:4px}
     <h1>信号与系统 · 诊断式学习小模型</h1>
     <div class="sub">郑君里《信号与系统》(第三版) 第 1–4 章演示版 · 测 → 诊断 → 补弱 → 再测</div>
     <div class="notice">
-      这是用于验证效果的最小原型：15 个知识点、39 个参数化题模（31 文字 + 8 图形），只覆盖第 1–4 章。
+      这是用于验证效果的最小原型：15 个知识点、41 个参数化题模（33 文字 + 8 图形），只覆盖第 1–4 章。
       每轮按下方配置即时生成新题（数值、符号、选项顺序都会变化），不再使用固定题目列表。
-      诊断不只看对与错：每个错误选项都绑定了具体错因，报告会给出<b>错因画像</b>、前置依赖检查、针对性处方和学习资料，并可针对薄弱点再练一轮。数据仅保存在本机浏览器中。
+      诊断不只看对与错：每个错误选项都绑定了具体错因，报告会给出<b>错因画像</b>、前置依赖检查、针对性处方和学习资料，并可针对薄弱点再练一轮。<br>
+      <b>阶段 B</b> 起掌握度改用 BKT 概率模型（区分蒙对与失手），答题后可标「确定 / 不太确定」，下一题按信息量自适应挑选、置信度达标可提前结束。数据仅保存在本机浏览器中。
     </div>
     <div class="card">
       <h3 style="margin-bottom:10px">出题配置 <span style="font-size:12px;font-weight:400;color:var(--muted)">每轮即时生成，配置自动记忆</span></h3>
@@ -237,6 +266,10 @@ h1{font-size:22px;margin-bottom:4px}
             <label class="chip"><input type="checkbox" id="cfg-fig" checked><span>含图形题</span></label>
             <div class="cfg-tip">波形 / 频谱 / 框图 / 零极点</div>
           </div>
+          <div style="margin-top:12px">
+            <label class="chip"><input type="checkbox" id="cfg-adaptive" checked><span>自适应选题</span></label>
+            <div class="cfg-tip">按 BKT 信息量挑下一题；关掉可对照随机顺序</div>
+          </div>
         </div>
       </div>
       <div>
@@ -252,11 +285,12 @@ h1{font-size:22px;margin-bottom:4px}
       <h3 style="margin-bottom:8px">它怎么工作</h3>
       <p style="font-size:14px;color:#374151">
         ① 按配置生成一轮新题（可随时结束）→
-        ② 答错时记录<b>错在哪一步</b>，同时按知识点统计掌握度、标记薄弱点 →
-        ③ 生成<b>错因画像</b>：哪类错最常犯、涉及哪些知识点、对应的改正动作是什么 →
-        ④ 检查薄弱点的<b>前置依赖</b>（比如「卷积定理」薄弱时，先看「卷积积分」是否也没掌握），按「先补前置、再补本体」排序处方 →
-        ⑤ 点击「再练一轮薄弱点」按薄弱范围再生成一批新题，完成迭代闭环。<br>
-        ⑥ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、定位错因，逐步展开而不直接剧透答案。
+        ② 答错时记录<b>错在哪一步</b>，答完可标「确定 / 不太确定」，把会做与蒙对分开 →
+        ③ 下一题按 <b>BKT 信息量</b>自适应挑选（后验越接近五五开，越值得问）；置信度达标可提前结束 →
+        ④ 生成<b>错因画像</b>：哪类错最常犯、涉及哪些知识点、对应的改正动作是什么 →
+        ⑤ 报告给出<b>BKT 掌握概率</b>与模型自检（Brier / AUC，检验模型是否真的比累计正确率更准），并检查薄弱点的<b>前置依赖</b>，按「先补前置、再补本体」排序处方 →
+        ⑥ 点击「再练一轮薄弱点」按薄弱范围再生成一批新题，完成迭代闭环。<br>
+        ⑦ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、定位错因，逐步展开而不直接剧透答案。
       </p>
       <div style="margin-top:20px">
         <button class="btn btn-primary" onclick="startQuiz()">开始诊断</button>
@@ -299,6 +333,7 @@ h1{font-size:22px;margin-bottom:4px}
         <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()" style="display:none">下一题</button>
         <button class="btn btn-ghost" onclick="endQuiz(true)">结束并查看诊断报告</button>
       </div>
+      <div id="early-box" style="margin-top:12px"></div>
     </div>
   </div>
 
@@ -396,7 +431,7 @@ const MIS = {
  m07:{name:'收敛域与存在条件', desc:'漏写收敛域、把收敛域方向判反，或把「绝对可积」当成必要条件。',
       fix:'每个拉氏变换对都连着收敛域一起记，并写出使它收敛的不等式。'},
  m08:{name:'极点与稳定性判据', desc:'用零点判稳定、把虚轴极点当成稳定、忽略「只要一个右半平面极点就不稳定」。',
-      fix:'只数极点：全在左半平面则稳定；有任何一个在右侧则不稳定；只在虚轴上则临界稳定。'},
+      fix:'只数极点：全在左半平面则稳定；有任何一个在右侧则不稳定；只在虚轴上则临界稳定（仅限单阶极点；虚轴上的重极点不稳定）。'},
  m09:{name:'读图与表征转换', desc:'波形宽度、谱线间隔、冲激强度、零极点位置读错，或把图形特征直接当成结论。',
       fix:'先把图上标出的数值逐个抄下来，再一一对应到定理或性质，不要跳步。'},
  m10:{name:'代入与代数计算', desc:'把自变量取零代入采样性质、忽略冲激强度、符号或算术失误。',
@@ -419,7 +454,7 @@ const MIS_MAP = {
  t22:['m01','m01','m01'], t23:['m07','m07','m07'], t24:['m01','m01','m01'],
  t25:['m02','m02','m02'], t26:['m02','m03','m02'], t27:['m06','m10','m01'],
  t28:['m08','m08','m01'], t29:['m08','m08','m08'], t30:['m08','m08','m08'],
- t31:['m08','m08','m08'],
+ t31:['m08','m08','m08'], t32:['m07','m06','m08'], t33:['m03','m03','m03'],
  g01:['m01','m01','m12'], g02:['m09','m10','m06'], g03:['m04','m04','m04'],
  g04:['m05','m05','m05'], g05:['m06','m06','m01'], g06:['m06','m06','m09'],
  g07:['m09','m01','m01'], g08:['m08','m08','m08']
@@ -450,6 +485,7 @@ const SCOPE_MAP = {
  t09:'iso',t10:'iso',t11:'int',t12:'iso',t13:'iso',t14:'iso',t15:'iso',t16:'iso',
  t17:'iso',t18:'iso',t19:'iso',t20:'int',t21:'iso',t22:'iso',t23:'int',t24:'iso',
  t25:'iso',t26:'iso',t27:'int',t28:'iso',t29:'int',t30:'iso',t31:'int',
+ t32:'int',t33:'iso',
  g01:'iso',g02:'int',g03:'iso',g04:'int',g05:'int',g06:'int',g07:'iso',g08:'iso'
 };
 function scopeFor(tpl){
@@ -675,7 +711,7 @@ function figPoleZero(poles,zeros,rocRight){
 
 /* 卷积结果示意图：两个阶跃卷积得到从 t=s 开始的斜坡 */
 function figConvRamp(s){
-  const y0=142,x0=62,x1=x0+(s||3)*44;
+  const y0=142,x0=62,x1=x0+s*44;
   const pts=[[x0,y0],[x1,y0],[410,y0-72]];
   let b=axes('t','y(t)',y0)+poly(pts);
   b+='<rect x="'+x1+'" y="'+(y0-72)+'" width="'+(410-x1)+'" height="72" fill="'+FC.fill+'"/>';
@@ -875,7 +911,7 @@ T('t15','calc','k08','常用傅里叶变换对', d=>{
   return {q:M('\\mathrm{e}^{-'+a+'t}u(t)')+' 的傅里叶变换是：',
     correct:M('\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}'),
     distractors:[M('\\dfrac{1}{'+a+'-\\mathrm{j}\\omega}'),M('\\dfrac{1}{'+a+'+\\omega}'),M('\\pi\\delta(\\omega)+\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}')],
-    exp:M('F(\\omega)=\\int_0^{\\infty}\\mathrm{e}^{-'+a+'t}\\mathrm{e}^{-\\mathrm{j}\\omega t}\\mathrm{d}t=\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}')+'。第四个选项是 '+M('u(t)')+' 的变换（含直流冲激项 '+M('\\pi\\delta(\\omega)')+'），两者常被对比：不带 '+M('u(t)')+' 截断就没有冲激项。'};
+    exp:M('F(\\omega)=\\int_0^{\\infty}\\mathrm{e}^{-'+a+'t}\\mathrm{e}^{-\\mathrm{j}\\omega t}\\mathrm{d}t=\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}')+'。第四个选项在本题结果上多加了一个 '+M('\\pi\\delta(\\omega)')+'，是在模仿 '+M('u(t)')+' 的变换（'+M('u(t)\\leftrightarrow \\pi\\delta(\\omega)+\\dfrac{1}{\\mathrm{j}\\omega}')+'）；不带 '+M('u(t)')+' 截断就没有冲激项。'};
 });
 T('t16','concept','k08','傅里叶变换存在条件', d=>{
   const a=ra(d);
@@ -889,8 +925,8 @@ T('t16','concept','k08','傅里叶变换存在条件', d=>{
 T('t17','property','k09','时移性质', d=>{
   const t0=ri(1,6);
   return {q:'若 '+M('f(t)\\leftrightarrow F(\\omega)')+'，则 '+M('f(t-'+t0+')')+' 的傅里叶变换是：',
-    correct:M('F(\\omega)\\mathrm{e}^{-j'+t0+'\\omega}'),
-    distractors:[M('F(\\omega)\\mathrm{e}^{j'+t0+'\\omega}'),M('F(\\omega-'+t0+')'),M('\\dfrac{1}{'+t0+'}F\\!\\left(\\dfrac{\\omega}{'+t0+'}\\right)')],
+    correct:M('F(\\omega)\\mathrm{e}^{-\\mathrm{j}'+t0+'\\omega}'),
+    distractors:[M('F(\\omega)\\mathrm{e}^{\\mathrm{j}'+t0+'\\omega}'),M('F(\\omega-'+t0+')'),M('\\dfrac{1}{'+t0+'}F\\!\\left(\\dfrac{\\omega}{'+t0+'}\\right)')],
     exp:'时移性质 '+M('f(t-t_0)\\leftrightarrow F(\\omega)\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+'，取 '+M('t_0='+t0)+'，只改相位不改幅度谱。最后一个选项是尺度性质的形式，注意区分「时域平移」与「时域展缩」。'};
 });
 T('t18','property','k09','尺度性质', d=>{
@@ -899,6 +935,14 @@ T('t18','property','k09','尺度性质', d=>{
     correct:M('\\dfrac{1}{'+a+'}F\\!\\left(\\dfrac{\\omega}{'+a+'}\\right)'),
     distractors:[M('F\\!\\left(\\dfrac{\\omega}{'+a+'}\\right)'),M(a+'F('+a+'\\omega)'),M('\\dfrac{1}{'+a+'}F(\\omega)')],
     exp:'尺度性质 '+M('f(at)\\leftrightarrow \\dfrac{1}{|a|}F(\\omega/a)')+'。时域压缩对应频域展宽、幅度压缩——这是带宽与脉宽成反比的根源。'};
+});
+
+T('t33','property','k09','频移性质', d=>{
+  const w0=ri(2,6);
+  return {q:'若 '+M('f(t)\\leftrightarrow F(\\omega)')+'，则 '+M('f(t)\\mathrm{e}^{\\mathrm{j}'+w0+'t}')+' 的傅里叶变换是：',
+    correct:M('F(\\omega-'+w0+')'),
+    distractors:[M('F(\\omega+'+w0+')'),M('F(\\omega)\\mathrm{e}^{\\mathrm{j}'+w0+'\\omega}'),M('F(\\omega)\\mathrm{e}^{-\\mathrm{j}'+w0+'\\omega}')],
+    exp:'频移性质 '+M('f(t)\\mathrm{e}^{\\mathrm{j}\\omega_0 t}\\leftrightarrow F(\\omega-\\omega_0)')+'：乘 '+M('\\mathrm{e}^{\\mathrm{j}\\omega_0 t}')+' 使频谱整体右移 '+M('\\omega_0')+'，这就是调制搬移频谱的频域解释。注意与时移 '+M('F(\\omega)\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+' 区分。'};
 });
 
 /* k10 卷积定理与频域分析 */
@@ -911,7 +955,7 @@ T('t19','property','k10','卷积定理', d=>{
 });
 T('t20','calc','k10','矩形脉冲频谱', d=>{
   const tau=ri(2,6);
-  return {q:'宽度为 '+M('\\tau='+tau)+' 的矩形脉冲 '+M('G_\\tau(t)')+'，其频谱 '+M('F(\\omega)='),
+  return {q:'宽度为 '+M('\\tau='+tau)+' 的矩形脉冲 '+M('G_\\tau(t)')+'（以 '+M('t=0')+' 为中心），其频谱 '+M('F(\\omega)='),
     correct:M(tau+'\\,\\mathrm{Sa}\\!\\left(\\dfrac{'+tau+'\\omega}{2}\\right)'),
     distractors:[M('G_\\tau(\\omega)'),M('\\sum_{n}\\delta(\\omega-n\\omega_1)'),M('\\dfrac{1}{'+tau+'}\\,\\mathrm{Sa}(\\omega)')],
     exp:M('G_\\tau(t)\\leftrightarrow \\tau\\,\\mathrm{Sa}\\!\\left(\\dfrac{\\omega\\tau}{2}\\right)')+'，其中 '+M('\\mathrm{Sa}(x)=\\dfrac{\\sin x}{x}')+' 为抽样函数。时域越窄（'+M('\\tau')+' 小）频谱第一个零点 '+M('\\omega=\\dfrac{2\\pi}{\\tau}=\\dfrac{2\\pi}{'+tau+' }')+' 越远、主瓣越宽——脉宽与带宽成反比的经典例证。'};
@@ -965,6 +1009,15 @@ T('t26','property','k13','时移性质', d=>{
     exp:'时移性质 '+M('f(t-t_0)u(t-t_0)\\leftrightarrow \\mathrm{e}^{-st_0}F(s)')+'，取 '+M('t_0='+t0)+'。注意信号必须整体延迟（连同 '+M('u')+' 一起平移）才能直接套用；只延迟 '+M('f')+' 不延迟 '+M('u')+' 需另行展开。'};
 });
 
+/* k13 补充：终值定理（知识点名含「终值」，此前无对应题） */
+T('t32','property','k13','终值定理', d=>{
+  const b=ri(2,6);
+  return {q:'若 '+M('F(s)=\\dfrac{1}{s(s+'+b+')}')+'（'+M('f(t)')+' 为因果信号），且终值定理条件满足，则 '+M('f(\\infty)='),
+    correct:M('\\dfrac{1}{'+b+'}'),
+    distractors:[M('0'),M('1'),'不存在'],
+    exp:'终值定理 '+M('f(\\infty)=\\lim_{s\\to 0}sF(s)')+'，前提是 '+M('sF(s)')+' 的极点全在左半平面。本例 '+M('sF(s)=\\dfrac{1}{s+'+b+'}')+'，极点 '+M('-'+b)+' 在左半平面，故 '+M('f(\\infty)=\\dfrac{1}{'+b+'}')+'。'+M('s=0')+' 的一阶极点被 '+M('s')+' 抵消，终值才存在；若 '+M('sF(s)')+' 在虚轴上有极点，定理失效。'};
+});
+
 /* k14 拉氏反变换与部分分式 */
 T('t27','calc','k14','部分分式反变换', d=>{
   const b=ri(2,6);
@@ -1002,14 +1055,14 @@ T('t30','concept','k15','系统稳定的条件', d=>{
   return {q:'设 '+M('H(s)')+' 有 '+M(String(n))+' 个极点，因果连续 LTI 系统稳定的条件是：',
     correct:'极点全部在 s 左半平面',
     distractors:['零点全部在左半平面','极点全部在右半平面','极点都在虚轴上'],
-    exp:'因果系统稳定等价于 '+M('H(s)')+' 极点全部满足 '+M('\\mathrm{Re}(p)<0')+'，冲激响应绝对可积。稳定性由极点决定、与零点位置无关；极点在虚轴上为临界稳定（如积分器），右半平面则不稳定。'};
+    exp:'因果系统稳定等价于 '+M('H(s)')+' 极点全部满足 '+M('\\mathrm{Re}(p)<0')+'，冲激响应绝对可积。稳定性由极点决定、与零点位置无关；虚轴上的单阶极点对应临界稳定（如积分器），重极点或右半平面极点都不稳定。'};
 });
 T('t31','system','k15','选出稳定系统', d=>{
   const a=ri(1,4), b=ri(1,4);
   const opts=[M('H(s)=\\dfrac{1}{s+'+a+'}'),M('H(s)=\\dfrac{1}{s-'+a+'}'),M('H(s)=\\dfrac{1}{s^2}'),M('H(s)=\\dfrac{1}{(s+'+a+')(s-'+b+')}')];
   return {q:'下列因果系统中，稳定的是：',
     correct:opts[0], distractors:opts.slice(1),
-    exp:'只有 '+M('1/(s+'+a+')')+' 的极点 '+M('-'+a)+' 在左半平面。'+M('1/(s-'+a+')')+' 有右半平面极点；'+M('1/s^2')+' 极点在原点（二重），临界稳定；'+M('1/[(s+'+a+')(s-'+b+')]')+' 含右半平面极点 '+M('+'+b)+'，不稳定。'};
+    exp:'只有 '+M('1/(s+'+a+')')+' 的极点 '+M('-'+a)+' 在左半平面。'+M('1/(s-'+a+')')+' 有右半平面极点；'+M('1/s^2')+' 在原点有二重极点，冲激响应为 '+M('t\\,u(t)')+' 无界，故不稳定；'+M('1/[(s+'+a+')(s-'+b+')]')+' 含右半平面极点 '+M('+'+b)+'，不稳定。'};
 });
 
 /* ================= 知识点讲解素材（离线讲解用） ================= */
@@ -1039,7 +1092,7 @@ const KP_LESSONS = {
  k08:{brief:'傅里叶变换 '+M('F(\\omega)=\\int\\limits_{-\\infty}^{\\infty}f(t)\\mathrm{e}^{-\\mathrm{j}\\omega t}\\mathrm{d}t')+' 把时域信号映射到频域。绝对可积是充分条件而非必要条件。',
    points:[M('\\mathrm{e}^{-at}u(t)\\leftrightarrow \\dfrac{1}{a+\\mathrm{j}\\omega}\\ (a>0)')+' 是最常用的变换对',M('u(t)')+' 的变换含直流冲激项 '+M('\\pi\\delta(\\omega)')+'，不要漏','引入冲激函数后，'+M('u(t)')+'、周期信号也有傅里叶变换'],
    tip:'选项里出现 '+M('\\pi\\delta(\\omega)')+' 时，先想是不是 '+M('u(t)')+' 或周期信号。'},
- k09:{brief:'时移 '+M('f(t-t_0)\\leftrightarrow F(\\omega)\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+' 只改相位；尺度 '+M('f(at)\\leftrightarrow \\dfrac{1}{|a|}F(\\omega/a)')+' 同时改变频域宽度与幅度。',
+ k09:{brief:'时移 '+M('f(t-t_0)\\leftrightarrow F(\\omega)\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+' 只改相位；尺度 '+M('f(at)\\leftrightarrow \\dfrac{1}{|a|}F(\\omega/a)')+' 同时改变频域宽度与幅度；频移 '+M('f(t)\\mathrm{e}^{\\mathrm{j}\\omega_0t}\\leftrightarrow F(\\omega-\\omega_0)')+' 使频谱整体搬移（调制）。',
    points:['时移不改幅度谱，只加线性相位','时域压缩对应频域展宽，脉宽与带宽成反比','注意区分「时域平移」和「时域展缩」两种形式'],
    tip:'看到 '+M('\\mathrm{e}^{-\\mathrm{j}\\omega t_0}')+' 就想到时移，看到 '+M('F(\\omega/a)/|a|')+' 就想到尺度。'},
  k10:{brief:'卷积定理 '+M('f_1*f_2\\leftrightarrow F_1F_2')+'：时域卷积对应频域相乘；对偶地，时域相乘对应频域卷积（带 '+M('1/2\\pi')+'）。',
@@ -1051,14 +1104,14 @@ const KP_LESSONS = {
  k12:{brief:'拉普拉斯变换 '+M('F(s)=\\int f(t)\\mathrm{e}^{-st}\\mathrm{d}t')+'（'+M('s=\\sigma+\\mathrm{j}\\omega')+'）相当于给信号乘收敛因子 '+M('\\mathrm{e}^{-\\sigma t}')+' 后再作傅里叶变换。收敛域由极点决定。',
    points:[M('\\mathrm{e}^{-at}u(t)\\leftrightarrow \\dfrac{1}{s+a}')+'，收敛域 '+M('\\mathrm{Re}(s)>-a')+'（极点右侧）','傅氏变换是 '+M('s=\\mathrm{j}\\omega')+' 的特例','同一 '+M('F(s)')+' 配不同收敛域对应不同时域信号'],
    tip:'只写表达式不写收敛域，反变换是不唯一的。'},
- k13:{brief:'微分性质 '+M('\\mathcal{L}[f^{\\prime}(t)]=sF(s)-f(0^-)')+'；时移性质 '+M('f(t-t_0)u(t-t_0)\\leftrightarrow \\mathrm{e}^{-st_0}F(s)')+'。',
+ k13:{brief:'微分性质 '+M('\\mathcal{L}[f^{\\prime}(t)]=sF(s)-f(0^-)')+'；时移性质 '+M('f(t-t_0)u(t-t_0)\\leftrightarrow \\mathrm{e}^{-st_0}F(s)')+'；终值定理 '+M('f(\\infty)=\\lim_{s\\to 0}sF(s)')+'（要求 '+M('sF(s)')+' 极点全在左半平面）。',
    points:['初始条件用 '+M('0^-')+' 才能保留跳变信息','时移必须整体平移（连同 '+M('u(t)')+' 一起）',M('F(s)/s')+' 对应时域积分，别和微分搞混'],
    tip:'信号只延迟 f 而不延迟 u 时，不能直接套时移公式。'},
  k14:{brief:'拉氏反变换常用部分分式展开：把 '+M('F(s)')+' 拆成一阶项之和，再逐项查表。单实极点 '+M('p')+' 对应 '+M('\\mathrm{e}^{pt}u(t)')+'。',
    points:[''+M('\\dfrac{1}{s(s+b)}=\\dfrac{1}{b}\\left(\\dfrac{1}{s}-\\dfrac{1}{s+b}\\right)')+'，别漏系数 '+M('1/b'),'负实极点衰减、正实极点增长、共轭虚极点等幅振荡','也可用留数法 '+M('\\mathrm{Res}[F(s)\\mathrm{e}^{st}]')],
    tip:'部分分式系数算错是失分主因，代一个简单 s 值验算一下。'},
  k15:{brief:'系统函数 '+M('H(s)=Y(s)/X(s)')+'。因果连续 LTI 系统稳定等价于 '+M('H(s)')+' 全部极点位于 s 左半平面（'+M('\\mathrm{Re}(p)<0')+'）。',
-   points:['稳定性只看极点，与零点位置无关','极点在虚轴上是临界稳定（如积分器 '+M('1/s^2')+'）','右半平面有极点就不稳定，哪怕只有一个'],
+   points:['稳定性只看极点，与零点位置无关','虚轴上只有单阶极点时为临界稳定（如积分器 '+M('1/s')+'）；虚轴上的重极点不稳定（如 '+M('1/s^2')+'）','右半平面有极点就不稳定，哪怕只有一个'],
    tip:'二阶系统 '+M('s^2+as+b')+' 可用系数全为正作快捷判据，但高阶要用劳斯判据。'}
 };
 
@@ -1297,7 +1350,7 @@ function generateQuestions(cfg, avoid){
   const avoidSet=new Set(avoid||[]);
   let tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&cfg.kps.includes(t.kp)&&(cfg.fig!==false||!t.fig));
   let relaxed=false;
-  if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&(cfg.fig!==false||!t.fig)); relaxed=true; }
+  if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&cfg.kps.includes(t.kp)&&(cfg.fig!==false||!t.fig)); relaxed=true; }
   if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.fig!==false||!t.fig); relaxed=true; }
   const diffs=cfg.diffs.length?cfg.diffs:[1,2,3];
   const want=Math.max(1,Math.min(30,cfg.count|0||10));
@@ -1330,9 +1383,8 @@ function generateQuestions(cfg, avoid){
   if(cfg.fig!==false && out.length){
     const minFig=Math.max(1,Math.round(want*0.2));
     let figTpls=TEMPLATES.filter(t=>t.fig&&cfg.types.includes(t.type)&&cfg.kps.includes(t.kp));
-    if(!figTpls.length) figTpls=TEMPLATES.filter(t=>t.fig);
     let guard=0;
-    while(out.filter(q=>q.hasFig).length<minFig && guard++<want*40){
+    while(figTpls.length && out.filter(q=>q.hasFig).length<minFig && guard++<want*40){
       const t=pick(figTpls), d=pick(diffs);
       let raw=null; try{ raw=t.gen(d); }catch(e){ continue; }
       const q=normalizeQuestion(t,d,raw);
@@ -1365,7 +1417,7 @@ function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch
 function resetAll(){ if(confirm('清空全部作答记录与出题配置？')){ state={answers:{},qbank:{},roundLog:[],nextId:1,rounds:0,lastSigs:[],config:null}; save(); location.reload(); } }
 
 /* ================= 出题配置 ================= */
-const DEFAULT_CFG={types:Object.keys(TYPES), kps:KPS.map(k=>k.id), diffs:[1,2,3], count:10, fig:true};
+const DEFAULT_CFG={types:Object.keys(TYPES), kps:KPS.map(k=>k.id), diffs:[1,2,3], count:10, fig:true, adaptive:true};
 function buildCfgUI(){
   const chip=(v,txt,g)=>'<label class="chip"><input type="checkbox" data-group="'+g+'" value="'+v+'"><span>'+txt+'</span></label>';
   document.getElementById('cfg-types').innerHTML=Object.keys(TYPES).map(k=>chip(k,TYPES[k],'type')).join('');
@@ -1382,11 +1434,12 @@ function readCfg(){
   const kps=[...document.querySelectorAll('#cfg-kps input:checked')].map(x=>x.value);
   const diffs=[...document.querySelectorAll('#cfg-diffs input:checked')].map(x=>+x.value);
   const count=Math.max(3,Math.min(30,+document.getElementById('cfg-count').value||10));
-  const figEl=document.getElementById('cfg-fig');
+  const figEl=document.getElementById('cfg-fig'), adEl=document.getElementById('cfg-adaptive');
   return {types:types.length?types:DEFAULT_CFG.types.slice(),
           kps:kps.length?kps:DEFAULT_CFG.kps.slice(),
           diffs:diffs.length?diffs:DEFAULT_CFG.diffs.slice(),
-          count:count, fig:figEl? !!figEl.checked : true};
+          count:count, fig:figEl? !!figEl.checked : true,
+          adaptive: adEl? !!adEl.checked : true};
 }
 function applyCfg(){
   const c=(state.config && state.config.types)?state.config:DEFAULT_CFG;
@@ -1395,6 +1448,7 @@ function applyCfg(){
   document.querySelectorAll('#cfg-diffs input').forEach(x=>x.checked=c.diffs.includes(+x.value));
   document.getElementById('cfg-count').value=c.count;
   const f=document.getElementById('cfg-fig'); if(f) f.checked=(c.fig!==false);
+  const a=document.getElementById('cfg-adaptive'); if(a) a.checked=(c.adaptive!==false);
 }
 function cfgAll(){ document.querySelectorAll('#cfg-kps input').forEach(x=>x.checked=true); }
 function cfgNone(){ document.querySelectorAll('#cfg-kps input').forEach(x=>x.checked=false); }
@@ -1430,7 +1484,17 @@ function diagStatus(kid){
   }
   return long;
 }
-function weakKPs(){ return KPS.filter(k=>['bad','mid'].includes(diagStatus(k.id).key)); }
+/* 阶段 B：BKT 作为补充证据并入薄弱点，采用「只增不减」原则——
+   原有「本轮错题必进处方」与累计掌握度判定完全保留，只额外把
+   「观测 >= 3 次但后验仍 < 0.45」的知识点拉进来，避免把蒙对误判为掌握。 */
+function weakKPs(){
+  const bm=bktReplay().model;
+  return KPS.filter(k=>{
+    if(['bad','mid'].includes(diagStatus(k.id).key)) return true;
+    const b=bm[k.id];
+    return b && b.n>=3 && b.p<0.45;
+  });
+}
 
 /* 阶段 A：错因统计。累计口径来自 state.answers（答题时已把命中的错因写进去，
    因此旧版历史记录没有 mis 字段时也能安全兼容）；本轮口径来自 roundLog。 */
@@ -1461,6 +1525,102 @@ function kpWeighted(kid){
     n+=row.w; if(state.answers[id].correct) c+=row.w;
   });
   return {n:n, c:c, rate:n? c/n : null};
+}
+
+/* ================= 阶段 B：BKT 掌握度模型（无状态重放） =================
+   不再把「累计正确率」当唯一口径，改用带 guess / slip 的贝叶斯知识追踪：
+     P(答对) = p·(1-slip) + (1-p)·guess，观测后按贝叶斯公式更新，再叠加学习转移。
+   后验不存增量状态，而是每次从 state.answers 按题库编号顺序重放，好处是：
+     - 天然支持时间衰减、置信度自评、参数调整，旧记录缺字段也能兼容；
+     - 重放同时产出「作答前的预测概率」，可直接用 Brier / AUC 检验模型是否真的更准。 */
+const BKT = {pInit:0.30, pLearn:0.22, guess:0.20, slip:0.12, forgetHalf:21, master:0.80};
+/* 置信度自评调整观测参数：
+   「确定」→ 证据更硬（答对更可信、答错更说明没掌握）；
+   「不太确定」→ 答对可能是蒙的（提高 guess）、答错可能是手滑（提高 slip）。 */
+function bktParams(conf){
+  const p={pLearn:BKT.pLearn, guess:BKT.guess, slip:BKT.slip};
+  if(conf==='sure'){ p.slip=0.06; p.guess=0.10; }
+  else if(conf==='unsure'){ p.guess=0.34; p.slip=0.24; }
+  return p;
+}
+function bktReplay(){
+  const model={};
+  KPS.forEach(k=>model[k.id]={p:BKT.pInit, n:0, c:0, lastTs:0});
+  const rows=[];
+  Object.keys(state.answers).map(Number).sort((a,b)=>a-b).forEach(id=>{
+    const a=state.answers[id], q=state.qbank[id];
+    if(!a || !q) return;
+    const m=model[q.kp]; if(!m) return;
+    /* 遗忘：距该知识点上次作答越久，后验越向初始水平回落 */
+    if(m.lastTs && a.ts){
+      const days=Math.max(0,(a.ts-m.lastTs)/86400000);
+      if(days>0) m.p=BKT.pInit+(m.p-BKT.pInit)*Math.pow(0.5,days/BKT.forgetHalf);
+    }
+    const par=bktParams(a.conf);
+    const pred=m.p*(1-par.slip)+(1-m.p)*par.guess;
+    const base=m.n? (m.c+1)/(m.n+2) : 0.5;   /* 对照基线：带 Laplace 平滑的累计正确率 */
+    rows.push({id:id, kid:q.kp, pred:pred, base:base, actual:a.correct?1:0, conf:a.conf||null, ts:a.ts||0});
+    let post = a.correct? m.p*(1-par.slip)/Math.max(pred,1e-9)
+                        : m.p*par.slip/Math.max(1-pred,1e-9);
+    m.p=post+(1-post)*par.pLearn;
+    m.p=Math.max(0.001,Math.min(0.999,m.p));
+    m.n++; if(a.correct) m.c++;
+    if(a.ts) m.lastTs=a.ts;
+  });
+  return {model:model, rows:rows};
+}
+function bktStat(kid){
+  const m=bktReplay().model[kid];
+  return m? {p:m.p, n:m.n, c:m.c, lastTs:m.lastTs, conf:Math.max(m.p,1-m.p)} : null;
+}
+function bktLabel(p){
+  if(p>=BKT.master) return {key:'ok',label:'已掌握',pill:'ok'};
+  if(p>=0.5) return {key:'mid',label:'形成中',pill:'warn'};
+  return {key:'bad',label:'未掌握',pill:'bad'};
+}
+/* 模型自检：Brier 越低越准，AUC 越接近 1 越好；与累计正确率基线同台对比 */
+function aucOf(pairs){
+  const pos=pairs.filter(x=>x.y===1), neg=pairs.filter(x=>x.y===0);
+  if(!pos.length||!neg.length) return null;
+  let win=0,tie=0;
+  pos.forEach(a=>neg.forEach(b=>{ if(a.s>b.s+1e-12) win++; else if(Math.abs(a.s-b.s)<=1e-12) tie++; }));
+  return (win+0.5*tie)/(pos.length*neg.length);
+}
+function evalModels(rows){
+  const n=rows.length;
+  if(n<8) return {n:n, enough:false};
+  let b=0,bb=0;
+  rows.forEach(r=>{ b+=(r.pred-r.actual)*(r.pred-r.actual); bb+=(r.base-r.actual)*(r.base-r.actual); });
+  return {n:n, enough:true, brier:b/n, brierBase:bb/n,
+          auc:aucOf(rows.map(r=>({s:r.pred,y:r.actual}))),
+          aucBase:aucOf(rows.map(r=>({s:r.base,y:r.actual})))};
+}
+/* 题目的诊断信息量：知识点后验越接近 0.5，答这一题越能减少不确定性。
+   Q-matrix 里的前置知识点按 0.35 权重计入，难题略有加权。 */
+function qInfo(q, model){
+  const row=q.kps||[{id:q.kp,w:1}];
+  let s=0;
+  row.forEach(x=>{ const m=model[x.id]; if(m) s+=x.w*4*m.p*(1-m.p); });
+  return s*(1+0.15*((q.d||1)-1));
+}
+/* 自适应重排：保持已答题与总题数不变，只把「剩余未答题」按当前信息量降序重排。
+   每答一题都会重算一次，所以下一题永远是当前最值得问的那道。 */
+function adaptiveOrder(fromIdx){
+  if(!state.config || state.config.adaptive===false) return;
+  if(fromIdx>=pool.length-1) return;
+  const model=bktReplay().model;
+  const head=pool.slice(0,fromIdx);
+  const rest=pool.slice(fromIdx).map((q,i)=>({q:q,i:i,info:qInfo(q,model)}))
+    .sort((a,b)=> (b.info-a.info)||(a.i-b.i)).map(x=>x.q);
+  pool=head.concat(rest);
+}
+/* 本轮置信度是否收敛：覆盖到的知识点后验确定性均值 >= 0.82 即可提前结束 */
+function bktCoverage(){
+  const model=bktReplay().model;
+  const kids=[...new Set(pool.map(q=>q.kp))];
+  const got=kids.filter(k=>model[k]&&model[k].n>0);
+  const conf=got.length? got.reduce((s,k)=>s+Math.max(model[k].p,1-model[k].p),0)/got.length : 0;
+  return {conf:conf, ready:conf>=0.82 && got.length>=Math.min(3,kids.length), covered:got.length, total:kids.length};
 }
 
 /* ================= 屏幕切换 ================= */
@@ -1534,16 +1694,19 @@ function katexGuard(){
 /* ================= 做题流程 ================= */
 function startQuiz(onlyWeak=false){
   const cfg=readCfg();
-  state.config=cfg; state.roundLog=[]; save();   /* 每轮开始清空本轮作答记录并记住配置 */
+  state.config=cfg;
   const genCfg=Object.assign({},cfg);
   if(onlyWeak){
+    /* 必须先按「本轮错题」算出薄弱点，再清空 roundLog，否则本轮错题证据被抹掉 */
     const w=weakKPs().map(k=>k.id);
-    if(!w.length){ alert('当前没有薄弱知识点'); return; }
+    if(!w.length){ save(); alert('当前没有薄弱知识点'); return; }
     genCfg.kps=w;                           /* 强化轮：按薄弱知识点范围重新生成新题 */
   }
+  state.roundLog=[]; save();                /* 每轮开始清空本轮作答记录并记住配置 */
   QS=generateQuestions(genCfg, state.lastSigs);
   if(!QS.length){ alert('出题失败，请调整配置后重试'); return; }
   pool=QS.slice(); isRound2=onlyWeak; idx=0;
+  adaptiveOrder(0);                     /* 阶段 B：第一题也按当前 BKT 信息量挑 */
   show('screen-quiz');
   renderQ();
 }
@@ -1554,6 +1717,7 @@ function renderQ(){
   document.getElementById('quiz-title').textContent =
     (isRound2?'薄弱点强化练习 · ':'诊断测试 · ') + (idx+1)+' / '+pool.length +
     (pool.length<want? '（去重后 '+pool.length+' 题）':'') +
+    (state.config&&state.config.adaptive!==false? ' · 自适应选题':'') +
     (state.relaxed? ' · 配置已自动放宽':'');
   document.getElementById('qmeta').innerHTML =
     '<span class="tag tag-ch">'+CHAPS[KPS.find(k=>k.id===q.kp).ch]+'</span>'+
@@ -1575,6 +1739,7 @@ function renderQ(){
     box.appendChild(d);
   });
   const fb=document.getElementById('qfb'); fb.className='feedback'; fb.innerHTML='';
+  const eb=document.getElementById('early-box'); if(eb) eb.innerHTML='';
   document.getElementById('btn-next').style.display='none';
   t2e(document.getElementById('qtext'));   /* 只渲染新内容，避免整屏重复扫描已渲染公式 */
   t2e(document.getElementById('qopts'));
@@ -1587,8 +1752,9 @@ function choose(i){
   opts[0].dataset.done='1';
   const ok = i===q.a;
   const mis = ok? null : (q.mis && q.mis[i]) || null;
-  state.answers[q.id]={correct:ok, chosen:i, mis:mis, scope:q.scope};
-  state.roundLog.push({qid:q.id, kp:q.kp, correct:ok, chosen:i, mis:mis, scope:q.scope});
+  const now=Date.now();
+  state.answers[q.id]={correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now};
+  state.roundLog.push({qid:q.id, pos:idx+1, kp:q.kp, correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now});
   save();
   opts.forEach((o,j)=>{ o.style.cursor='default';
     if(j===q.a) o.classList.add('right');
@@ -1599,21 +1765,52 @@ function choose(i){
   fb.innerHTML='<b>'+(ok?'回答正确':'回答错误，正确答案是 '+String.fromCharCode(65+q.a))+'</b>'+
     (!ok && mis && MIS[mis]? '<span class="mis-inline"><b>错因定位：'+MIS[mis].name+'</b>　'+MIS[mis].desc+
       '<br>改正动作：'+MIS[mis].fix+'</span>' : '')+
-    '<span class="explain">'+q.exp+'</span>';
+    '<span class="explain">'+q.exp+'</span>'+
+    '<div class="conf-box" id="conf-box"><span>这题你有多确定？</span>'+
+      '<button type="button" onclick="setConf(\'sure\')">确定</button>'+
+      '<button type="button" onclick="setConf(\'unsure\')">不太确定</button>'+
+      '<span class="note" style="margin:0">可跳过；自评会改变 BKT 的证据强度</span></div>';
   t2e(fb);
   document.getElementById('btn-next').style.display = idx<pool.length-1 ? 'inline-block':'none';
+  maybeShowEarly();
   if(idx===pool.length-1) fb.insertAdjacentHTML('beforeend',
     '<div style="margin-top:10px"><button class="btn btn-primary" onclick="endQuiz()">查看诊断报告</button></div>');
 }
-function nextQuestion(){ idx++; renderQ(); }
-function endQuiz(){ showReport(); }
+/* 阶段 B：置信度自评。不强制填写，但会改变这次作答在 BKT 里的分量。 */
+function setConf(v){
+  const q=pool[idx], a=q && state.answers[q.id];
+  if(!a || a.conf || (v!=='sure'&&v!=='unsure')) return;
+  a.conf=v;
+  const r=(state.roundLog||[]).find(x=>x.qid===q.id && x.pos===idx+1);
+  if(r) r.conf=v;
+  save();
+  const box=document.getElementById('conf-box');
+  if(box) box.innerHTML='<span class="conf-done">已记录「'+(v==='sure'?'确定':'不太确定')+'」：'+
+    (v==='sure'? '这次作答作为更强的证据（答对更可信，答错也更说明没掌握）。'
+               : '答对会部分归为猜测、答错会部分归为失手，避免模型过度反应。')+'</span>';
+  if(typeof tutorPush==='function') tutorPush('sys','已记录置信度自评：'+(v==='sure'?'确定':'不太确定'));
+  maybeShowEarly();
+}
+/* 阶段 B：置信度达标时允许提前结束，不必刷完配置的题量 */
+function maybeShowEarly(){
+  const box=document.getElementById('early-box'); if(!box) return;
+  const c=bktCoverage();
+  const answeredN=(state.roundLog||[]).length;
+  const minQ=Math.min(5,Math.max(3,Math.ceil(pool.length*0.5)));
+  const can=c.ready && answeredN>=minQ && idx<pool.length-1;
+  box.innerHTML=can?
+    '<button class="btn btn-ghost" onclick="endQuiz()">诊断已收敛，提前结束看报告</button>'+
+    '<span class="note" style="margin-left:8px">平均置信度 '+Math.round(c.conf*100)+'%，已覆盖 '+
+      c.covered+'/'+c.total+' 个知识点；剩余题目可不做</span>' : '';
+}
+function nextQuestion(){ idx++; adaptiveOrder(idx); renderQ(); }
+function endQuiz(){ if((state.roundLog||[]).length) state.rounds++; save(); showReport(); }
 
 /* ================= 报告 ================= */
 function showReport(){
   const answered=Object.keys(state.answers).length;
   const total=Object.keys(state.qbank).length;
   let correct=0; Object.values(state.answers).forEach(a=>{ if(a.correct) correct++; });
-  state.rounds++; save();
 
   /* 诊断以「本轮」为准：只要有错题就必须出现在处方里，不被历史累计正确率稀释 */
   const rTotal=(state.roundLog||[]).length;
@@ -1636,7 +1833,13 @@ function showReport(){
         '处方已按「先补前置、再补本体」排序。';
   }
 
-  let html='<div class="summary '+cls+'">'+msg+'</div>';
+  const bk=bktReplay(), ev=evalModels(bk.rows);
+  const bkSeen=KPS.filter(k=>bk.model[k.id].n>0);
+  const bkMastered=bkSeen.filter(k=>bk.model[k.id].p>=BKT.master).length;
+  let html='<div class="summary '+cls+'">'+msg+
+    (bkSeen.length? '<div style="font-size:13px;margin-top:8px;opacity:.85">BKT：已覆盖 '+
+      bkSeen.length+' 个知识点，其中 '+bkMastered+' 个达到掌握阈值 '+
+      Math.round(BKT.master*100)+'%。</div>':'')+'</div>';
 
   const ms=misStats();
 
@@ -1653,12 +1856,56 @@ function showReport(){
       const tag = rs.wrong? '<span class="pill bad" style="margin-left:4px">本轮错 '+rs.wrong+'</span>'
                 : (rs.n? '<span class="pill ok" style="margin-left:4px">本轮 '+rs.c+'/'+rs.n+'</span>' : '');
       html+='<div class="kp-row">'+
-        '<div class="kp-name">'+k.name+'<small>前置：'+(k.prereq.length?k.prereq.map(id=>KPS.find(x=>x.id===id).name).join('、'):'无')+'</small></div>'+
+        '<div class="kp-name">'+k.name+'<small>前置：'+(k.prereq.length?k.prereq.map(id=>KPS.find(x=>x.id===id).name).join('、'):'无')+
+          ' · BKT '+Math.round(bk.model[k.id].p*100)+'%</small></div>'+
         '<div class="kp-bar"><i style="width:'+w+'%;background:'+color+'"></i></div>'+
         '<div class="kp-stat">'+(s.n? '累计 '+s.c+'/'+s.n:'未测')+' <span class="pill '+st.pill+'">'+st.label+'</span>'+tag+'</div>'+
       '</div>';
     });
   });
+  html+='</div>';
+
+  /* BKT 掌握概率（阶段 B）：不再用单条累计正确率代表掌握程度 */
+  html+='<div class="card"><h3 style="margin-bottom:6px">BKT 掌握概率</h3>'+
+    '<div class="note" style="margin:0 0 10px">p 是「该知识点已掌握」的后验概率，不是累计正确率。'+
+    '答对未必等于掌握（可能蒙对）、答错未必等于不会（可能失手）；模型用猜测率 '+BKT.guess+
+    '、失手率 '+BKT.slip+'、学习率 '+BKT.pLearn+' 把两种噪声分开，久未作答还会按半衰期 '+
+    BKT.forgetHalf+' 天向初始水平 '+Math.round(BKT.pInit*100)+'% 回落。达到 '+
+    Math.round(BKT.master*100)+'% 判为已掌握；「置信度」是 max(p, 1-p)，越高越不需要再问。</div>';
+  html+='<div class="bkt-row bkt-head"><span>知识点</span><span>后验 p</span><span>观测</span>'+
+    '<span>置信度</span><span>距上次</span><span>状态</span></div>';
+  KPS.slice().sort((a,b)=>bk.model[a.id].p-bk.model[b.id].p).forEach(k=>{
+    const m=bk.model[k.id], L=bktLabel(m.p), conf=Math.max(m.p,1-m.p);
+    const days=m.lastTs? Math.max(0,Math.round((Date.now()-m.lastTs)/86400000)) : null;
+    html+='<div class="bkt-row"><span>'+k.name+'</span>'+
+      '<span class="bkt-p">'+Math.round(m.p*100)+'%</span>'+
+      '<span>'+m.n+' 次</span>'+
+      '<span class="bkt-p">'+Math.round(conf*100)+'%</span>'+
+      '<span>'+(days===null? '—' : (days<1? '今天' : days+' 天前'))+'</span>'+
+      '<span><span class="pill '+L.pill+'">'+L.label+'</span></span></div>';
+  });
+  html+='</div>';
+
+  /* 模型自检（阶段 B）：用历史作答检验新模型是否真的比基线准 */
+  html+='<div class="card"><h3 style="margin-bottom:6px">模型自检：BKT 真的更准吗</h3>'+
+    '<div class="note" style="margin:0 0 6px">对每条历史作答，取「作答前」的预测概率与实际对错比对。'+
+    'Brier 分数越低越准、AUC 越接近 1 越好；对照组是带平滑的累计正确率基线。</div>';
+  if(!ev.enough){
+    html+='<p style="font-size:14px;color:#374151">样本 '+ev.n+' 条，满 8 条后开始评估。多测几轮即可看到对比。</p>';
+  } else {
+    const fmt=x=> x===null? '—' : x.toFixed(3);
+    const betterB=ev.brier<ev.brierBase;
+    const betterA=ev.auc!==null && ev.aucBase!==null && ev.auc>ev.aucBase;
+    html+='<div class="eval-row">'+
+      '<div class="eval-cell"><b>'+fmt(ev.brier)+'</b><small>BKT · Brier（越低越准）</small></div>'+
+      '<div class="eval-cell"><b>'+fmt(ev.brierBase)+'</b><small>累计正确率基线 · Brier</small></div>'+
+      '<div class="eval-cell"><b>'+fmt(ev.auc)+'</b><small>BKT · AUC（越接近 1 越好）</small></div>'+
+      '<div class="eval-cell"><b>'+fmt(ev.aucBase)+'</b><small>基线 · AUC</small></div></div>'+
+      '<div class="note">样本 '+ev.n+' 条。'+
+        (betterB? 'BKT 的 Brier 更低，预测更贴近实际结果。' : 'BKT 的 Brier 暂未优于基线，样本再多一些或参数需要校准。')+
+        (ev.auc!==null? (betterA? ' AUC 也高于基线。' : ' AUC 与基线接近或略低。')
+                      : ' 目前答对 / 答错未同时出现，AUC 暂不可算。')+'</div>';
+  }
   html+='</div>';
 
   /* 错因画像（阶段 A）：先看「错在哪一步」，再看「哪个知识点」 */
@@ -1727,6 +1974,9 @@ function showReport(){
         '<h4>'+k.name+' <span class="pill '+st.pill+'">'+st.label+'</span>'+
         '<small style="font-weight:400;color:var(--muted);margin-left:8px">'+
         '累计 '+(s.n? s.c+'/'+s.n+' 题（'+Math.round(s.rate*100)+'%）':'未测')+' · 本轮 '+rs.c+'/'+rs.n+'</small></h4>';
+      const bkm=bk.model[k.id];
+      html+='<p><b>BKT 后验：</b>'+Math.round(bkm.p*100)+'%（'+bktLabel(bkm.p).label+'，'+bkm.n+
+        ' 次观测）。'+(bkm.p<0.45? '模型认为仍未掌握——累计正确率偏高可能来自蒙对。':'')+'</p>';
       if(badPre.length){
         html+='<p><b>先补前置：</b>'+badPre.map(pid=>{
           const p=KPS.find(x=>x.id===pid), ps=kpStatus(pid);
@@ -1734,7 +1984,7 @@ function showReport(){
         }).join('、')+'。该知识点建立在前置之上，前置不牢直接刷题收效有限。</p>';
       }
       const roundWrong=(state.roundLog||[]).filter(r=>r.kp===k.id && !r.correct);
-      if(roundWrong.length) html+='<p><b>本轮错题：</b>第 '+roundWrong.map(r=>r.qid).join('、')+' 题，建议先对照解析弄清错因。</p>';
+      if(roundWrong.length) html+='<p><b>本轮错题：</b>第 '+roundWrong.map(r=>r.pos||r.qid).join('、')+' 题（按本轮作答顺序），建议先对照解析弄清错因。</p>';
       /* 按错因聚合处方：同一知识点下，优先改掉出现次数最多的那一类错 */
       const kpMis=Object.keys(ms.all).filter(mid=>ms.all[mid].kps[k.id])
         .sort((a,b)=>ms.all[b].kps[k.id]-ms.all[a].kps[k.id]).slice(0,2);
@@ -1749,7 +1999,7 @@ function showReport(){
         (s.n && ws.rate < s.rate-0.15? '明显低于本体累计值，拖后腿的可能不是本体，而是前置知识点。'
                                    : '用于观察前置知识点是否也在拖后腿。')+'</p>';
       const wrongQs=Object.values(state.qbank).filter(q=>q.kp===k.id && state.answers[q.id] && !state.answers[q.id].correct);
-      if(wrongQs.length) html+='<p>累计错题：'+wrongQs.map(q=>'第 '+q.id+' 题').join('、')+'。</p>';
+      if(wrongQs.length) html+='<p>累计错题：'+wrongQs.length+' 道（题库编号跨轮不连续，这里只报数量）。</p>';
       k.res.forEach(r=>{ html+='<p><a href="'+r[1]+'" target="_blank">'+r[0]+' ↗</a></p>'; });
       html+='</div>';
     });
@@ -1763,7 +2013,10 @@ function showReport(){
     '<button class="btn btn-ghost" onclick="goHome()">返回首页</button>'+
     '<div class="note">迭代逻辑：本轮只要有错题，对应知识点必定进入处方（不会被历史正确率稀释）；上方掌握度表是累计值，本轮表现单独标注。强化轮按薄弱范围即时生成新题。</div></div>';
 
-  document.getElementById('report-sub').textContent='第 '+state.rounds+' 轮 · 本轮 '+rTotal+' 题（错 '+rWrong+'） · 累计作答 '+answered+'/'+total+' 题';
+  const confN=Object.values(state.answers).filter(a=>a.conf).length;
+  document.getElementById('report-sub').textContent='第 '+state.rounds+' 轮 · 本轮 '+rTotal+
+    ' 题（错 '+rWrong+'） · 累计作答 '+answered+'/'+total+' 题 · 自评 '+confN+' 题 · '+
+    (state.config&&state.config.adaptive!==false? '自适应选题':'固定顺序');
   document.getElementById('report-body').innerHTML=html;
   t2e(document.getElementById('report-body'));
   show('screen-report');
@@ -1774,9 +2027,13 @@ function goHome(){
 }
 function renderHistory(){
   const answered=Object.keys(state.answers).length;
+  const bm=bktReplay().model;
+  const mastered=KPS.filter(k=>bm[k.id].p>=BKT.master).length;
+  const confN=Object.values(state.answers).filter(a=>a.conf).length;
   document.getElementById('home-history').innerHTML = answered?
     '<div class="card"><h3 style="margin-bottom:6px">历史进度</h3>'+
-    '<p style="font-size:14px;color:#374151">已完成 '+state.rounds+' 轮测试，累计生成 '+Object.keys(state.qbank).length+' 题、作答 '+answered+' 题。'+
+    '<p style="font-size:14px;color:#374151">已完成 '+state.rounds+' 轮测试，累计生成 '+Object.keys(state.qbank).length+' 题、作答 '+answered+
+    ' 题；BKT 判定已掌握 '+mastered+'/'+KPS.length+' 个知识点，置信度自评 '+confN+' 题。'+
     ' <a href="#" onclick="showReport();return false" style="color:var(--accent)">查看上次诊断报告</a></p></div>':'';
 }
 
@@ -1821,7 +2078,9 @@ function tutorPush(role,text){
 }
 function tutorOnNewQuestion(){
   tutorHintLevel=0;
-  tutorPush('sys','—— 第 '+(idx+1)+' 题 · '+KPS.find(k=>k.id===pool[idx].kp).name+' ——');
+  const kp=KPS.find(k=>k.id===pool[idx].kp), bm=bktStat(kp.id);
+  tutorPush('sys','—— 第 '+(idx+1)+' 题 · '+kp.name+' · BKT '+
+    Math.round(bm.p*100)+'%（'+bktLabel(bm.p).label+'）——');
 }
 function toggleTutor(){
   const p=document.getElementById('tutorPanel'); if(!p) return;
@@ -1965,6 +2224,8 @@ function aiContext(q){
       String.fromCharCode(65+i)+'='+MIS[m].name+'（'+MIS[m].desc+'）':'').filter(Boolean).join('；')+
     '\n【学生本次错因】'+(ans&&ans.mis&&MIS[ans.mis]?
       MIS[ans.mis].name+'：'+MIS[ans.mis].desc+'；建议动作：'+MIS[ans.mis].fix : '本题尚未命中错因')+
+    '\n【BKT 掌握后验】'+Math.round(bktStat(kp.id).p*100)+'%（'+bktLabel(bktStat(kp.id).p).label+
+      '）；学生自评：'+(ans&&ans.conf? (ans.conf==='sure'?'确定':'不太确定'):'未填写')+
     '\n\n要求：用中文；数学符号用 LaTeX 并放在 \\( ... \\) 里；函数名与单位用 \\mathrm{}；'+
     '虚数单位用正体 \\mathrm{j}；常数 e、π 与微分 d 也用正体；先给思路再给结论；'+
     '学生答错时优先针对上面命中的错因纠正，不要泛泛而谈；学生没明确要求答案时不要直接说出正确选项；'+
