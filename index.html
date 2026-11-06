@@ -847,7 +847,8 @@ function scopeStat(kid, scope){
    图内只标几何量（0、t、τ、T、ω、×、○），公式一律留给正文的 KaTeX，避免两套符号混排。 */
 
 const FC={line:'#2563eb',axis:'#94a3b8',grid:'#e9eef6',txt:'#475569',muted:'#94a3b8',
-          red:'#dc2626',ok:'#16a34a',fill:'rgba(37,99,235,.10)',warn:'rgba(220,38,38,.14)'};
+          red:'#dc2626',ok:'#16a34a',fill:'rgba(37,99,235,.10)',fillSoft:'rgba(37,99,235,.07)',
+          warn:'rgba(220,38,38,.14)'};
 const FF='font-family="-apple-system,PingFang SC,Microsoft YaHei,sans-serif"';
 
 function svgWrap(inner){
@@ -955,8 +956,12 @@ function figSpec(kind,p){
       const u=i/w, v=Math.abs(u)<0.001?1:Math.sin(Math.PI*u)/(Math.PI*u);
       pts.push([cx+i,y0-72*v]);
     }
-    body=poly(pts);
-    body+='<rect x="'+cx+'" y="'+(y0-72)+'" width="140" height="72" fill="'+FC.fill+'"/>';
+    /* 主瓣区间底色：左右边界严格对齐 ±2π/τ 两条红色虚线，且先于曲线绘制。
+       旧版这里误留了一个「时域矩形脉冲」的半边填充（从中心向右固定 140 宽），
+       既不对称、也和第一零点无关，视觉上会把时域图形叠进频域图里，已删除。 */
+    body='<rect x="'+(cx-w)+'" y="'+(y0-80)+'" width="'+(2*w)+'" height="88" fill="'+FC.fillSoft+'"/>';
+    body+=poly(pts);
+    body+=plainLabel(cx,34,'主瓣','#94a3b8',10);
     body+=dash(cx+w,y0-80,cx+w,y0+8,FC.red);
     body+=dash(cx-w,y0-80,cx-w,y0+8,FC.red);
     body+=label(cx+w,y0+22,'2\\pi/\\tau','#dc2626',10);
@@ -1545,7 +1550,7 @@ TG('g06','calc','k10','Sa 频谱读零点', d=>{
     correct:M('\\dfrac{2\\pi}{'+tau+' }'),
     distractors:[M('\\dfrac{\\pi}{'+tau+' }'),M('\\dfrac{4\\pi}{'+tau+' }'),M('\\dfrac{2\\pi}{'+(2*tau)+' }')],
     exp:M('G_\\tau(t)\\leftrightarrow \\tau\\,\\mathrm{Sa}\\!\\left(\\dfrac{\\omega\\tau}{2}\\right)')+'，'+M('\\mathrm{Sa}(x)=0')+' 的第一个正根是 '+M('x=\\pi')+'，故 '+M('\\dfrac{\\omega\\tau}{2}=\\pi\\Rightarrow\\omega=\\dfrac{2\\pi}{\\tau}=\\dfrac{2\\pi}{'+tau+' }')+'。脉宽越窄，主瓣越宽。',
-    fig:figSpec('sa',{w:Math.round(170/tau)}), figCap:'图：抽样函数型频谱，红色虚线标出第一零点 '+M('\\pm 2\\pi/\\tau')+'。',
+    fig:figSpec('sa',{w:Math.round(170/tau)}), figCap:'图：抽样函数型频谱，红色虚线标出第一零点 '+M('\\pm 2\\pi/\\tau')+'，两条虚线之间的浅色带为主瓣区间。',
     hints:['先写出矩形脉冲的频谱 '+M('\\tau\\,\\mathrm{Sa}(\\omega\\tau/2)')+'。',
            '想想 '+M('\\mathrm{Sa}(x)=\\sin x/x')+' 什么时候第一次取零。',
            '令 '+M('\\omega\\tau/2=\\pi')+' 解出 '+M('\\omega')+'。']};
