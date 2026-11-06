@@ -161,6 +161,19 @@ h1{font-size:22px;margin-bottom:4px}
 .fig-lb .katex{font-size:1em}
 .qfig-cap{font-size:12px;color:var(--muted);padding:7px 12px;border-top:1px solid var(--line);background:#f7f9fc}
 .tag-fig{background:#eef2ff;color:#4338ca}
+/* ---- 阶段 C：间隔复测 ---- */
+.tag-review{background:#f5f3ff;color:#6d28d9}
+.review-inline{display:block;margin-top:9px;padding:9px 12px;border-radius:8px;
+  background:#f5f3ff;color:#5b21b6;font-size:13px;line-height:1.75}
+.rv-due{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:11px 13px;margin-bottom:12px;
+  border-radius:9px;background:#faf8ff;border:1px solid #ede9fe;font-size:14px}
+.rv-row{display:grid;grid-template-columns:1.7fr .8fr .9fr .8fr;gap:8px;align-items:center;
+  padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+.rv-row:last-child{border-bottom:none}
+.rv-row.rv-head{font-weight:700;color:var(--muted);font-size:12px;background:#f8fafc;
+  border-bottom:1px solid var(--line)}
+.rv-row.due{background:#fef2f2}
+.rv-row small{display:block;color:var(--muted);font-size:11.5px}
 /* ---- 讲解浮层 ---- */
 #tutorFab{position:fixed;right:22px;bottom:22px;z-index:60;border:none;border-radius:28px;
   padding:13px 20px;background:var(--accent);color:#fff;font-size:14px;font-weight:700;
@@ -230,6 +243,8 @@ h1{font-size:22px;margin-bottom:4px}
   .kp-name{flex:1 1 100%}
   .kp-bar{flex:1 1 100%}
   .kp-stat{flex:0 0 100%;text-align:left}
+  .rv-row{grid-template-columns:1.4fr .7fr .9fr;gap:5px;font-size:12px}
+  .rv-row>span:nth-child(4){display:none}
 }
 </style>
 </head>
@@ -244,7 +259,8 @@ h1{font-size:22px;margin-bottom:4px}
       这是用于验证效果的最小原型：15 个知识点、41 个参数化题模（33 文字 + 8 图形），只覆盖第 1–4 章。
       每轮按下方配置即时生成新题（数值、符号、选项顺序都会变化），不再使用固定题目列表。
       诊断不只看对与错：每个错误选项都绑定了具体错因，报告会给出<b>错因画像</b>、前置依赖检查、针对性处方和学习资料，并可针对薄弱点再练一轮。<br>
-      <b>阶段 B</b> 起掌握度改用 BKT 概率模型（区分蒙对与失手），答题后可标「确定 / 不太确定」，下一题按信息量自适应挑选、置信度达标可提前结束。数据仅保存在本机浏览器中。
+      <b>阶段 B</b> 起掌握度改用 BKT 概率模型（区分蒙对与失手），答题后可标「确定 / 不太确定」，下一题按信息量自适应挑选、置信度达标可提前结束。<br>
+      <b>阶段 C</b> 起错题会按「知识点 + 错因」进入 1 / 3 / 7 / 14 天的间隔复测队列，每次都是变式题（换参数、换题模、或文字 ↔ 图形换表征）；讲解助手会先选教学动作再回答，微讲义只依据本地教材片段。数据仅保存在本机浏览器中。
     </div>
     <div class="card">
       <h3 style="margin-bottom:10px">出题配置 <span style="font-size:12px;font-weight:400;color:var(--muted)">每轮即时生成，配置自动记忆</span></h3>
@@ -290,10 +306,12 @@ h1{font-size:22px;margin-bottom:4px}
         ④ 生成<b>错因画像</b>：哪类错最常犯、涉及哪些知识点、对应的改正动作是什么 →
         ⑤ 报告给出<b>BKT 掌握概率</b>与模型自检（Brier / AUC，检验模型是否真的比累计正确率更准），并检查薄弱点的<b>前置依赖</b>，按「先补前置、再补本体」排序处方 →
         ⑥ 点击「再练一轮薄弱点」按薄弱范围再生成一批新题，完成迭代闭环。<br>
-        ⑦ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、定位错因，逐步展开而不直接剧透答案。
+        ⑦ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、定位错因，逐步展开而不直接剧透答案；阶段 C 起会先选一个<b>教学动作</b>（提示 / 反问 / 类比 / 微讲义 / 确认理解）再回答，避免每次都倒同一套解析。<br>
+        ⑧ 答错的题会进入<b>间隔复测队列</b>：1 / 3 / 7 / 14 天阶梯推进，每次用变式题检验判据能否迁移，连续 4 次通过即毕业。
       </p>
       <div style="margin-top:20px">
         <button class="btn btn-primary" onclick="startQuiz()">开始诊断</button>
+        <button class="btn btn-ghost" id="btn-review" onclick="startReview()">开始到期复测</button>
         <button class="btn btn-ghost" onclick="resetAll()">清空记录</button>
         <button class="btn btn-ghost" onclick="toggleAiSet()">AI 讲解设置</button>
       </div>
@@ -1338,7 +1356,7 @@ function normalizeQuestion(tpl, d, raw){
   if(a<0) return null;
   const opts=entries.map(e=>e.text), mis=entries.map(e=>e.mis);
   const out={kp:tpl.kp, type:tpl.type, d:d, q:q, opts:opts, a:a, exp:exp,
-             mis:mis, kps:qkps(tpl.kp), scope:scopeFor(tpl)};
+             mis:mis, kps:qkps(tpl.kp), scope:scopeFor(tpl), tpl:tpl.id||''};
   if(fig!==undefined) { out.fig=fig; out.figCap=figCap; out.hasFig=true; }
   if(hints) out.hints=hints;
   if(whyWrong) out.whyWrong=whyWrong;
@@ -1408,13 +1426,13 @@ function generateQuestions(cfg, avoid){
 
 /* ================= 状态 ================= */
 const STORE='ss_demo_v2';
-let state = {answers:{}, qbank:{}, roundLog:[], nextId:1, rounds:0, lastSigs:[], config:null};
+let state = {answers:{}, qbank:{}, roundLog:[], nextId:1, rounds:0, lastSigs:[], config:null, review:{}};
 let QS=[];                 // 本轮生成的题目，元素结构与旧版完全一致
-let pool=[], idx=0, isRound2=false;
+let pool=[], idx=0, isRound2=false, isReview=false;
 
-function load(){ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(s && s.qbank){ state=s; if(!Array.isArray(state.roundLog)) state.roundLog=[]; } }catch(e){} }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(s && s.qbank){ state=s; if(!Array.isArray(state.roundLog)) state.roundLog=[]; if(!state.review||typeof state.review!=='object') state.review={}; } }catch(e){} }
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){ /* 沙箱环境可能禁用 localStorage，失败时仅保留在内存中，不影响做题 */ } }
-function resetAll(){ if(confirm('清空全部作答记录与出题配置？')){ state={answers:{},qbank:{},roundLog:[],nextId:1,rounds:0,lastSigs:[],config:null}; save(); location.reload(); } }
+function resetAll(){ if(confirm('清空全部作答记录、出题配置与复测队列？')){ state={answers:{},qbank:{},roundLog:[],nextId:1,rounds:0,lastSigs:[],config:null,review:{}}; save(); location.reload(); } }
 
 /* ================= 出题配置 ================= */
 const DEFAULT_CFG={types:Object.keys(TYPES), kps:KPS.map(k=>k.id), diffs:[1,2,3], count:10, fig:true, adaptive:true};
@@ -1623,6 +1641,172 @@ function bktCoverage(){
   return {conf:conf, ready:conf>=0.82 && got.length>=Math.min(3,kids.length), covered:got.length, total:kids.length};
 }
 
+/* ================= 阶段 C：间隔复测队列 =================
+   错题按「知识点 + 错因」聚合入队，按 Leitner 式阶梯 1 / 3 / 7 / 14 天复测。
+   复测题一定是变式题（换参数、换题模或换表征），用来检验是否真的会迁移，
+   而不是把上一题的答案记住了。全部数据存在本机浏览器，纯离线。 */
+const REVIEW_STEPS=[1,3,7,14];
+const DAY_MS=86400000;
+function reviewKey(kp,mis){ return kp+'|'+(mis||'none'); }
+function reviewAll(){ return (state.review && typeof state.review==='object')? state.review : {}; }
+function dueReviews(now){
+  return Object.values(reviewAll()).filter(r=>!r.graduated && r.dueAt<=now)
+    .sort((a,b)=>a.dueAt-b.dueAt);
+}
+function reviewLabel(r){
+  if(r.graduated) return '已毕业';
+  const days=Math.max(0,Math.ceil((r.dueAt-Date.now())/DAY_MS));
+  return days<=0? '今天到期' : days+' 天后';
+}
+/* 普通诊断轮答错：新建或回退一个复测项。原题的签名、题模、是否带图都记下来，
+   供变式生成时避开原题并优先换表征。 */
+function upsertReview(q, mis, now){
+  if(!state.review || typeof state.review!=='object') state.review={};
+  const key=reviewKey(q.kp,mis), r=state.review[key];
+  if(r && !r.graduated){
+    r.stage=Math.max(0,(r.stage||0)-1);
+    r.dueAt=now+REVIEW_STEPS[0]*DAY_MS;
+    r.lastTs=now; r.graduated=false;
+    return key;
+  }
+  state.review[key]={key:key, kp:q.kp, mis:mis,
+    origSig:signature(q), origQid:q.id, origTpl:q.tpl||'', origFig:!!q.hasFig,
+    createdAt:now, dueAt:now+REVIEW_STEPS[0]*DAY_MS, stage:0,
+    history:[], lastTs:now, graduated:false};
+  return key;
+}
+/* 复测题作答结果：答对推进一级（最终毕业），答错回退一级并重置为 1 天后 */
+function updateReview(q, correct, now){
+  const r=reviewAll()[q.reviewKey];
+  if(!r) return null;
+  r.history=r.history||[];
+  r.history.push({ts:now, correct:correct, variant:q.variantKind||'param', qid:q.id});
+  r.lastTs=now;
+  if(correct){
+    r.stage=(r.stage||0)+1;
+    if(r.stage>=REVIEW_STEPS.length){ r.graduated=true; r.dueAt=0; }
+    else r.dueAt=now+REVIEW_STEPS[r.stage]*DAY_MS;
+  } else {
+    r.stage=Math.max(0,(r.stage||0)-1);
+    r.graduated=false;
+    r.dueAt=now+REVIEW_STEPS[0]*DAY_MS;
+  }
+  return r;
+}
+/* 为到期项生成变式题：优先同知识点且表征相反的题模（文字 ↔ 图形），
+   其次同错因、同知识点，最后兜底全库；循环重试直到签名与原错题不同。 */
+function generateReviewQuestions(items, diffs){
+  const ds=(diffs&&diffs.length)?diffs:[1,2,3];
+  const out=[], seen=new Set();
+  items.forEach(r=>{
+    const sameKp=TEMPLATES.filter(t=>t.kp===r.kp);
+    const flip=sameKp.filter(t=>!!t.fig!==!!r.origFig);
+    const byMis=sameKp.filter(t=>(MIS_MAP[t.id]||[]).includes(r.mis));
+    const ordered=[];
+    [flip,byMis,sameKp,TEMPLATES].forEach(arr=>arr.forEach(t=>{ if(!ordered.includes(t)) ordered.push(t); }));
+    let made=null;
+    for(let a=0;a<90 && !made;a++){
+      const t=(a<50 && flip.length)? pick(flip) : pick(ordered);
+      const d=pick(ds);
+      let raw; try{ raw=t.gen(d); }catch(e){ continue; }
+      const q=normalizeQuestion(t,d,raw);
+      if(!q) continue;
+      const sig=signature(q);
+      if(sig===r.origSig || seen.has(sig)) continue;
+      const changedRepr=!!t.fig!==!!r.origFig;
+      q.variantKind = changedRepr? 'repr' : (t.id===r.origTpl? 'param' : 'tpl');
+      q.reviewKey=r.key; q.variantOf=r.origSig; q.reviewStage=(r.stage||0)+1;
+      made=q; seen.add(sig);
+    }
+    if(made) out.push(made);
+  });
+  out.forEach(q=>{
+    q.id=state.nextId++;
+    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps, scope:q.scope,
+      reviewKey:q.reviewKey, variantKind:q.variantKind};
+  });
+  save();
+  return out;
+}
+
+/* ================= 阶段 C：教学动作选择器与检索式微讲义 =================
+   先决定「这一轮用什么教学动作」，再生成文字，而不是每次都倒同一套解析。
+   显式意图由学生说了算；泛泛提问时按作答结果、错因、BKT 后验与已用动作自动选。 */
+const TUTOR_ACTS={
+  hint:{name:'方向提示',brief:'只给思考方向，不给结论'},
+  question:{name:'反问自查',brief:'用一个问题让学生自己发现漏洞'},
+  analogy:{name:'类比直观',brief:'用直观类比建立抽象关系的直觉'},
+  micro:{name:'微讲义',brief:'先检索本地教材片段，再据此讲，不引入片段外结论'},
+  check:{name:'确认理解',brief:'让学生复述判据，防止蒙对'},
+  solve:{name:'完整解析',brief:'仅学生明确要求时给'},
+  formula:{name:'符号规范',brief:'说明本课程正斜体与记号约定'},
+  prereq:{name:'前置补齐',brief:'检查并补前置知识点'},
+  options:{name:'选项分析',brief:'逐项分析错误选项'},
+  mis:{name:'错因定位',brief:'定位本次命中的错因'}
+};
+let tutorActsUsed=[];
+function chooseTutorAct(q, text){
+  const t=String(text||'').toLowerCase();
+  /* 显式意图优先，兼容原有的口语关键词路由 */
+  if(/解析|答案|详解|完整|直接告诉|求解|推导|告诉/.test(t)) return 'solve';
+  if(/符号|公式|写法|规范|记号|latex|正体/.test(t)) return 'formula';
+  if(/前置|基础|先学|prerequisite/.test(t)) return 'prereq';
+  if(/选项|选了|错在哪|其他|排除/.test(t)) return 'options';
+  if(/错因|为什么错|老错|总错|总犯|哪类错|误区/.test(t)) return 'mis';
+  /* 自动选择：答错且后验低先补概念，给过提示后改用反问，蒙对要确认理解 */
+  const ans=state.answers[q.id];
+  const bm=bktStat(q.kp), p=bm?bm.p:BKT.pInit;
+  const unseen=a=>!tutorActsUsed.includes(a);
+  if(ans && !ans.correct){
+    if(p<0.45 && unseen('micro')) return 'micro';
+    if(tutorHintLevel>=1 && unseen('question')) return 'question';
+    if(p<0.7 && unseen('analogy')) return 'analogy';
+    if(unseen('micro')) return 'micro';
+    return 'hint';
+  }
+  if(ans && ans.correct && ans.conf==='unsure' && unseen('check')) return 'check';
+  if(tutorHintLevel===0 || unseen('hint')) return 'hint';
+  if(unseen('question')) return 'question';
+  if(unseen('micro')) return 'micro';
+  return 'hint';
+}
+/* 本地「教材片段库」：知识点讲解稿、前置、错因条目与本题解析，全部来自本项目，不联网 */
+function snippetCorpus(q){
+  const out=[], kp=curKp(q), L=KP_LESSONS[q.kp];
+  if(L){
+    out.push({src:'知识点讲解 · '+kp.name, text:L.brief});
+    L.points.forEach((p,i)=>out.push({src:'要点 '+(i+1)+' · '+kp.name, text:p}));
+    out.push({src:'常见误区 · '+kp.name, text:L.tip});
+  }
+  kp.prereq.forEach(pid=>{
+    const P=KP_LESSONS[pid], pk=KPS.find(x=>x.id===pid);
+    if(P) out.push({src:'前置 · '+(pk?pk.name:pid), text:P.brief});
+  });
+  const ans=state.answers[q.id];
+  if(ans&&ans.mis&&MIS[ans.mis])
+    out.push({src:'错因 · '+MIS[ans.mis].name, text:MIS[ans.mis].desc+' 改正动作：'+MIS[ans.mis].fix});
+  (q.mis||[]).forEach(m=>{ if(m&&MIS[m]) out.push({src:'干扰项错因 · '+MIS[m].name, text:MIS[m].fix}); });
+  out.push({src:'本题解析', text:q.exp});
+  return out;
+}
+/* 中文 2-gram 检索 + 来源先验；只用于排序，不改写片段原文 */
+function retrieveSnippets(q, query){
+  const corpus=snippetCorpus(q);
+  const clean=String(query||'').replace(/[^\u4e00-\u9fa5A-Za-z0-9]/g,'');
+  const grams=[]; for(let i=0;i<clean.length-1;i++) grams.push(clean.slice(i,i+2));
+  const keys=[...new Set(grams)];
+  return corpus.map((c,i)=>{
+    const txt=String(c.text).replace(/\\\([^)]*\\\)/g,'');
+    let s=0; keys.forEach(k=>{ if(k && txt.indexOf(k)>=0) s+=1; });
+    if(c.src.indexOf('知识点讲解')>=0) s+=1.5;
+    if(c.src.indexOf('错因')>=0) s+=1;
+    return {c:c, s:s, i:i};
+  }).sort((a,b)=> (b.s-a.s)||(a.i-b.i)).slice(0,3).map(x=>x.c);
+}
+function snippetsText(q, query){
+  return retrieveSnippets(q,query).map((s,i)=>'〔'+(i+1)+'〕'+s.src+'：'+s.text).join('\n');
+}
+
 /* ================= 屏幕切换 ================= */
 function show(id){
   ['screen-home','screen-quiz','screen-report'].forEach(s=>{
@@ -1705,8 +1889,22 @@ function startQuiz(onlyWeak=false){
   state.roundLog=[]; save();                /* 每轮开始清空本轮作答记录并记住配置 */
   QS=generateQuestions(genCfg, state.lastSigs);
   if(!QS.length){ alert('出题失败，请调整配置后重试'); return; }
-  pool=QS.slice(); isRound2=onlyWeak; idx=0;
+  pool=QS.slice(); isRound2=onlyWeak; isReview=false; idx=0;
   adaptiveOrder(0);                     /* 阶段 B：第一题也按当前 BKT 信息量挑 */
+  show('screen-quiz');
+  renderQ();
+}
+/* 阶段 C：把到期项做成一轮变式复测，而不是重刷原题 */
+function startReview(){
+  const due=dueReviews(Date.now());
+  if(!due.length){ alert('当前没有到期的复测项。先做一轮诊断积累错题，到期后这里会亮起。'); return; }
+  const cfg=readCfg(); state.config=cfg;
+  state.roundLog=[]; save();
+  const items=due.slice(0,Math.max(1,Math.min(30,cfg.count||10)));
+  QS=generateReviewQuestions(items, cfg.diffs);
+  if(!QS.length){ alert('复测题生成失败，请稍后重试'); return; }
+  pool=QS.slice(); isRound2=false; isReview=true; idx=0;
+  adaptiveOrder(0);
   show('screen-quiz');
   renderQ();
 }
@@ -1715,7 +1913,7 @@ function renderQ(){
   document.getElementById('qbar').style.width=(idx/pool.length*100)+'%';
   const want=(state.config&&state.config.count)||pool.length;
   document.getElementById('quiz-title').textContent =
-    (isRound2?'薄弱点强化练习 · ':'诊断测试 · ') + (idx+1)+' / '+pool.length +
+    (isReview? '间隔复测 · ' : isRound2?'薄弱点强化练习 · ':'诊断测试 · ') + (idx+1)+' / '+pool.length +
     (pool.length<want? '（去重后 '+pool.length+' 题）':'') +
     (state.config&&state.config.adaptive!==false? ' · 自适应选题':'') +
     (state.relaxed? ' · 配置已自动放宽':'');
@@ -1723,7 +1921,9 @@ function renderQ(){
     '<span class="tag tag-ch">'+CHAPS[KPS.find(k=>k.id===q.kp).ch]+'</span>'+
     '<span class="tag tag-d'+q.d+'">'+(['','易','中','难'][q.d])+'</span>'+
     '<span class="tag" style="background:#eef2f7;color:#475569">'+KPS.find(k=>k.id===q.kp).name+'</span>'+
-    (q.hasFig? '<span class="tag tag-fig">图形题</span>':'');
+    (q.hasFig? '<span class="tag tag-fig">图形题</span>':'')+
+    (q.reviewKey? '<span class="tag tag-review">复测 · 第 '+q.reviewStage+' 阶 · '+
+      (q.variantKind==='repr'?'换表征':q.variantKind==='param'?'换参数':'换题模')+'</span>':'');
   const figEl=document.getElementById('qfig');
   if(q.hasFig){
     figEl.innerHTML=q.fig+'<div class="qfig-cap">'+q.figCap+'</div>';
@@ -1755,6 +1955,9 @@ function choose(i){
   const now=Date.now();
   state.answers[q.id]={correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now};
   state.roundLog.push({qid:q.id, pos:idx+1, kp:q.kp, correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now});
+  /* 阶段 C：复测题按结果推进 / 回退阶梯；普通题答错则入队或回退 */
+  if(q.reviewKey) updateReview(q, ok, now);
+  else if(!ok && mis) upsertReview(q, mis, now);
   save();
   opts.forEach((o,j)=>{ o.style.cursor='default';
     if(j===q.a) o.classList.add('right');
@@ -1766,6 +1969,10 @@ function choose(i){
     (!ok && mis && MIS[mis]? '<span class="mis-inline"><b>错因定位：'+MIS[mis].name+'</b>　'+MIS[mis].desc+
       '<br>改正动作：'+MIS[mis].fix+'</span>' : '')+
     '<span class="explain">'+q.exp+'</span>'+
+    (q.reviewKey? '<span class="review-inline"><b>复测'+(ok?'通过':'未通过')+'：</b>'+
+      (ok? '间隔已拉长':'间隔重置为 1 天后')+'。这道题'+
+      (q.variantKind==='repr'? '把文字换成了图形（或反过来）':q.variantKind==='param'? '换了一组数值参数':'换成了同知识点的另一道题')+
+      '，检验的是判据能不能迁移，而不是记不记得上一题的答案。</span>' : '')+
     '<div class="conf-box" id="conf-box"><span>这题你有多确定？</span>'+
       '<button type="button" onclick="setConf(\'sure\')">确定</button>'+
       '<button type="button" onclick="setConf(\'unsure\')">不太确定</button>'+
@@ -2006,10 +2213,14 @@ function showReport(){
   }
   html+='</div>';
 
+  /* 阶段 C：间隔复测队列（与首页共用同一张卡片） */
+  html+=reviewCardHtml();
+
   /* 迭代控制 */
   html+='<div class="card"><h3 style="margin-bottom:10px">下一步</h3>'+
     '<button class="btn btn-primary" onclick="startQuiz(true)" '+(wk.length?'':'disabled')+'>再练一轮薄弱点（'+((state.config&&state.config.count)||10)+' 道新题）</button>'+
     '<button class="btn btn-ghost" onclick="startQuiz()">完整重测（新题）</button>'+
+    '<button class="btn btn-ghost" onclick="startReview()" '+(dueReviews(Date.now()).length?'':'disabled')+'>开始到期复测（'+dueReviews(Date.now()).length+'）</button>'+
     '<button class="btn btn-ghost" onclick="goHome()">返回首页</button>'+
     '<div class="note">迭代逻辑：本轮只要有错题，对应知识点必定进入处方（不会被历史正确率稀释）；上方掌握度表是累计值，本轮表现单独标注。强化轮按薄弱范围即时生成新题。</div></div>';
 
@@ -2022,6 +2233,43 @@ function showReport(){
   show('screen-report');
 }
 
+/* 阶段 C：首页与报告共用的复测队列卡片。旧数据缺 stage / history / dueAt 时按默认值兼底，不报错 */
+function reviewCardHtml(){
+  const all=Object.values(reviewAll());
+  if(!all.length) return '';
+  const now=Date.now();
+  const due=dueReviews(now);
+  const pending=all.filter(r=>!r.graduated).sort((a,b)=>(a.dueAt||0)-(b.dueAt||0));
+  const grad=all.filter(r=>r.graduated);
+  let h='<div class="card"><h3 style="margin-bottom:6px">间隔复测队列 <span class="tag tag-review">阶段 C</span></h3>'+
+    '<div class="note" style="margin:0 0 10px">错题按「知识点 + 错因」入队，按 <b>1 / 3 / 7 / 14 天</b>阶梯复测。'+
+    '每次都是变式题（换参数、换题模或文字 ↔ 图形换表征），检验判据能不能迁移，而不是记住上一题的答案。'+
+    '连续通过 4 阶即「毕业」；答错回退一阶并重置为 1 天后。</div>';
+  h+='<div class="rv-due"><b>'+(due.length? '今天有 '+due.length+' 项到期' : '当前没有到期项')+'</b>　'+
+    (due.length?
+      '<button class="btn btn-primary" style="padding:7px 16px;font-size:13px" onclick="startReview()">开始到期复测（'+due.length+'）</button>'+
+      '<span class="note" style="margin:0">只练到期项，每项是同知识点的变式新题</span>'
+      : '<span class="note" style="margin:0">下一次复测到期时，这里会自动亮起。</span>'+
+        '<button class="btn btn-ghost" style="padding:7px 16px;font-size:13px" disabled>开始到期复测</button>')+'</div>';
+  if(pending.length){
+    h+='<div class="rv-row rv-head"><span>知识点 / 错因 / 上次变式</span><span>阶梯</span><span>下次复测</span><span>状态</span></div>';
+    pending.forEach(r=>{
+      const k=KPS.find(x=>x.id===r.kp), m=MIS[r.mis];
+      const lastH=(r.history&&r.history.length)? r.history[r.history.length-1] : null;
+      const vk=lastH? ({repr:'换表征',param:'换参数',tpl:'换题模'}[lastH.variant]||'换参数') : '待首次复测';
+      const isDue=(r.dueAt||0)<=now;
+      h+='<div class="rv-row'+(isDue?' due':'')+'">'+
+        '<span>'+(k?k.name:r.kp)+'<small>'+(m?m.name:(r.mis||'—'))+' · '+vk+'</small></span>'+
+        '<span>第 '+Math.min((r.stage||0)+1,REVIEW_STEPS.length)+' / '+REVIEW_STEPS.length+' 阶</span>'+
+        '<span>'+reviewLabel(r)+'</span>'+
+        '<span><span class="pill '+(isDue?'bad':'warn')+'">'+(isDue?'待复测':'复习中')+'</span></span></div>';
+    });
+  }
+  if(grad.length) h+='<div class="note">已毕业 '+grad.length+' 项（连续 '+REVIEW_STEPS.length+' 次通过变式复测，不再排队）。</div>';
+  h+='</div>';
+  return h;
+}
+
 function goHome(){
   renderHistory(); show('screen-home');
 }
@@ -2030,11 +2278,20 @@ function renderHistory(){
   const bm=bktReplay().model;
   const mastered=KPS.filter(k=>bm[k.id].p>=BKT.master).length;
   const confN=Object.values(state.answers).filter(a=>a.conf).length;
-  document.getElementById('home-history').innerHTML = answered?
+  let html = answered?
     '<div class="card"><h3 style="margin-bottom:6px">历史进度</h3>'+
     '<p style="font-size:14px;color:#374151">已完成 '+state.rounds+' 轮测试，累计生成 '+Object.keys(state.qbank).length+' 题、作答 '+answered+
     ' 题；BKT 判定已掌握 '+mastered+'/'+KPS.length+' 个知识点，置信度自评 '+confN+' 题。'+
     ' <a href="#" onclick="showReport();return false" style="color:var(--accent)">查看上次诊断报告</a></p></div>':'';
+  html += reviewCardHtml();
+  /* 首页主按钮区的复测入口跟着到期数同步亮起 / 置灰 */
+  const rb=document.getElementById('btn-review');
+  if(rb){
+    const n=dueReviews(Date.now()).length;
+    rb.textContent = n? '开始到期复测（'+n+'）' : '开始到期复测（暂无到期）';
+    rb.disabled = !n;
+  }
+  document.getElementById('home-history').innerHTML = html;
 }
 
 /* ================= 讲解助手（边做边问） ================= */
@@ -2078,6 +2335,7 @@ function tutorPush(role,text){
 }
 function tutorOnNewQuestion(){
   tutorHintLevel=0;
+  tutorActsUsed=[];                 /* 每题重新允许各教学动作出现一次 */
   const kp=KPS.find(k=>k.id===pool[idx].kp), bm=bktStat(kp.id);
   tutorPush('sys','—— 第 '+(idx+1)+' 题 · '+kp.name+' · BKT '+
     Math.round(bm.p*100)+'%（'+bktLabel(bm.p).label+'）——');
@@ -2096,17 +2354,30 @@ function tutorReset(){ tutorMsgs=[]; tutorHintLevel=0; tutorGreeted=false;
   tutorPush('ai','已清空。我们重新来看当前这道题吧。'); }
 
 const QUICKS=[['hint','给个提示'],['concept','讲这个知识点'],['prereq','先补前置'],
-              ['mis','我为什么错'],['options','选项错在哪'],['formula','符号怎么写'],['solve','看完整解析']];
+              ['mis','我为什么错'],['options','选项错在哪'],['formula','符号怎么写'],['solve','看完整解析'],
+              ['auto','换个讲法'],['micro','微讲义'],['question','反问我']];
 function tutorInitQuick(){
   const box=document.getElementById('tutor-quick'); if(!box) return;
   box.innerHTML=QUICKS.map(q=>'<button onclick="tutorQuick(\''+q[0]+'\')">'+q[1]+'</button>').join('');
 }
 function tutorQuick(kind){
   const q=pool[idx]; if(!q) return;
-  if(kind==='hint'){ tutorPush('me','给个提示'); tutorPush('ai',hintAnswer(q)); return; }
+  if(kind==='hint'){ tutorPush('me','给个提示'); tutorActsUsed.push('hint'); tutorPush('ai',hintAnswer(q)); return; }
   const map={concept:'讲讲这个知识点',prereq:'我需要先补哪些前置？',mis:'我这题为什么错了？',
-             options:'其他选项错在哪？',formula:'这题的符号怎么写才规范？',solve:'直接看完整解析吧'};
+             options:'其他选项错在哪？',formula:'这题的符号怎么写才规范？',solve:'直接看完整解析吧',
+             auto:'换个讲法吧',micro:'给我一段微讲义',question:'反问我一个问题'};
   tutorPush('me',map[kind]||kind);
+  /* 阶段 C：「换个讲法」把选择权交给教学动作选择器，先公布本轮动作再回答 */
+  if(kind==='auto'){
+    const act=chooseTutorAct(q,'');
+    tutorActsUsed.push(act);
+    const A=TUTOR_ACTS[act];
+    tutorPush('sys','本轮教学动作：'+(A?A.name:act)+(A? ' — '+A.brief:''));
+    tutorPush('ai',actAnswer(q,act,''));
+    return;
+  }
+  if(kind==='micro'){ tutorActsUsed.push('micro'); tutorPush('ai',microAnswer(q,'')); return; }
+  if(kind==='question'){ tutorActsUsed.push('question'); tutorPush('ai',questionAnswer(q)); return; }
   const t=({concept:()=>conceptAnswer(q),prereq:()=>prereqAnswer(q),mis:()=>misAnswer(q),
              options:()=>optionsAnswer(q),formula:()=>formulaAnswer(q),solve:()=>solveAnswer(q)})[kind];
   if(t) tutorPush('ai',t());
@@ -2187,6 +2458,63 @@ function solveAnswer(q){
   return '完整解析：\n\n'+q.exp+'\n\n正确答案是 '+String.fromCharCode(65+q.a)+'. '+q.opts[q.a]+
     '\n\n（看完解析再作答时，掌握度统计仍会照常记录，心里有数就好。）';
 }
+/* 阶段 C：教学动作对应的四种新讲法。共同点是不直接剧透答案。 */
+function microAnswer(q, query){
+  const kp=curKp(q);
+  const snips=retrieveSnippets(q, query||kp.name);
+  if(!snips.length) return conceptAnswer(q);
+  return '【微讲义 · '+kp.name+'】下面只依据本地教材片段，不引入片段外的结论。\n\n'+
+    snips.map((s,i)=>'〔'+(i+1)+'〕'+s.src+'\n'+s.text).join('\n\n')+
+    '\n\n先用自己的话把上面的判据复述一遍，再回到题目。想继续可以点「反问我」，我用一个问题检查你；'+
+    '或者告诉我具体卡点，我再针对那一句讲。';
+}
+function questionAnswer(q){
+  const kp=curKp(q), L=KP_LESSONS[q.kp], ans=state.answers[q.id];
+  const mis=(ans&&!ans.correct&&ans.mis&&MIS[ans.mis])? MIS[ans.mis] : null;
+  let t='【反问自查】先不公布结论，回答我一个问题：\n\n';
+  if(mis) t+='你刚才选了 '+String.fromCharCode(65+ans.chosen)+'。「'+mis.name+'」这一类错误，'+
+    '通常是把哪个适用条件看漏了？\n请对照「'+kp.name+'」的成立条件逐条核一遍，说出你觉得最可疑的那一条。\n\n';
+  else t+='这道题考的是「'+kp.name+'」。先别算，先说清楚你要用的判据是什么：\n'+
+    (L? '· '+L.points[0]+'\n':'· 从定义出发，写下它的适用条件。\n')+'\n';
+  t+='如果你能不看解析把判据和适用条件复述出来，就说明概念已经建立；'+
+    '卡在哪一步就告诉我那个卡点，我再针对性讲，不会直接把答案塞给你。';
+  return t;
+}
+function analogyAnswer(q){
+  const kp=curKp(q), L=KP_LESSONS[q.kp];
+  return '【类比直观】打个比方帮你建立直觉，但严格结论仍以教材定义为准：\n\n'+
+    '把「'+kp.name+'」想成一道检查关卡：题干给出的每个条件都是一张门票，少一张就进不了门。'+
+    '很多错不是算错，而是拿错门票就往下算——先问「这个定理 / 性质允许我这么做吗」，再动笔。\n\n'+
+    (L? '对应到本题，先回忆：'+L.brief.split('。')[0]+'。\n\n':'')+
+    '另一个直观：把公式里每个符号都问一句「它在题里对应哪个量」，能对上号才说明真懂，而不是只背下了形状。\n\n'+
+    '想验证直觉对不对，点「反问我」让我挑毛病，或者直接把你的理解打出来。';
+}
+function checkAnswer(q){
+  const kp=curKp(q), ans=state.answers[q.id];
+  return '【确认理解】'+(ans&&ans.correct? '这道题你答对了':'先不管这题对错')+
+    (ans&&ans.conf==='unsure'? '，但你自评「不太确定」——答对也可能是蒙对。':'，先确认是不是真会。')+'\n\n'+
+    '请你不看选项、用自己的话回答三点：\n'+
+    '1）这道题用的判据（定义 / 定理 / 性质）是什么？\n'+
+    '2）它成立的适用条件有哪些？题目里哪一句话满足了它？\n'+
+    '3）如果换一组参数，或把文字题换成图形题，你会改哪一步、为什么？\n\n'+
+    '能说清这三点，'+kp.name+'才算真掌握；说不出的那一点，就是下一步要补的地方。';
+}
+/* 把「教学动作」映射到具体讲法；localAnswer / tutorQuick / aiAnswer 共用 */
+function actAnswer(q, act, text){
+  switch(act){
+    case 'solve':   return solveAnswer(q);
+    case 'formula': return formulaAnswer(q);
+    case 'prereq':  return prereqAnswer(q);
+    case 'options': return optionsAnswer(q);
+    case 'mis':     return misAnswer(q);
+    case 'micro':   return microAnswer(q, text||'');
+    case 'question':return questionAnswer(q);
+    case 'analogy': return analogyAnswer(q);
+    case 'check':   return checkAnswer(q);
+    case 'hint':
+    default:        return hintAnswer(q);
+  }
+}
 function localAnswer(text){
   const q=pool[idx]; if(!q) return '先点「开始诊断」，我才有题目可以陪你看。';
   const t=text.toLowerCase();
@@ -2204,13 +2532,17 @@ function localAnswer(text){
       '3）这些数值对应哪个定理或性质。\n\n'+q.figCap+'\n\n'+hintAnswer(q)
       : '本题没有配图。想练图形题的话，回首页确认「含图形题」已勾选，再开始一轮。';
   }
-  return '我可以帮你：给递进提示、讲知识点、查前置依赖、分析选项、说明符号规范、看完整解析。\n\n'+
-    '直接点下面的快捷按钮最省事，也可以把你的具体疑问打出来，比如「为什么时移只改相位」。'+
+  /* 阶段 C：泛泛提问交给教学动作选择器，按作答结果、错因、BKT 后验与已用过的动作挑一个 */
+  const act=chooseTutorAct(q,text);
+  tutorActsUsed.push(act);
+  const A=TUTOR_ACTS[act];
+  const head='【本轮教学动作 · '+(A?A.name:act)+'】'+(A? '（'+A.brief+'）\n\n':'\n\n');
+  return head+actAnswer(q,act,text)+
     (tutorAiCfg&&tutorAiCfg.endpoint? '' : '\n\n（现在是内置离线讲解；想要开放式追问可以在首页「AI 讲解设置」接入模型。）');
 }
 
 /* ---------- 可选 AI 接入（OpenAI 兼容） ---------- */
-function aiContext(q){
+function aiContext(q, act, snips){
   const kp=curKp(q), L=KP_LESSONS[q.kp];
   const pre=kp.prereq.map(id=>KPS.find(k=>k.id===id).name).join('、')||'无';
   const ans=state.answers[q.id];
@@ -2226,14 +2558,22 @@ function aiContext(q){
       MIS[ans.mis].name+'：'+MIS[ans.mis].desc+'；建议动作：'+MIS[ans.mis].fix : '本题尚未命中错因')+
     '\n【BKT 掌握后验】'+Math.round(bktStat(kp.id).p*100)+'%（'+bktLabel(bktStat(kp.id).p).label+
       '）；学生自评：'+(ans&&ans.conf? (ans.conf==='sure'?'确定':'不太确定'):'未填写')+
+    '\n\n【本轮教学动作】'+(act&&TUTOR_ACTS[act]? TUTOR_ACTS[act].name+' — '+TUTOR_ACTS[act].brief : '未指定，按学生提问自行判断，默认先给思路不剧透')+
+    (snips? '\n【检索到的本地教材片段】\n'+snips+
+      '\n微讲义模式：只依据以上片段讲，不要引入片段外的新结论或新公式。' : '')+
     '\n\n要求：用中文；数学符号用 LaTeX 并放在 \\( ... \\) 里；函数名与单位用 \\mathrm{}；'+
     '虚数单位用正体 \\mathrm{j}；常数 e、π 与微分 d 也用正体；先给思路再给结论；'+
     '学生答错时优先针对上面命中的错因纠正，不要泛泛而谈；学生没明确要求答案时不要直接说出正确选项；'+
-    '不要输出 Markdown 标题或代码块。';
+    '不要输出 Markdown 标题或代码块。'+
+    (act&&TUTOR_ACTS[act]? '\n严格按上面的教学动作输出：'+TUTOR_ACTS[act].brief+'。' : '');
 }
 async function aiAnswer(text){
   const q=pool[idx]; if(!q) return localAnswer(text);
-  const messages=[{role:'system',content:aiContext(q)}];
+  /* 阶段 C：AI 也走同一套教学动作选择器；微讲义模式把检索到的本地片段交给模型 */
+  const act=chooseTutorAct(q,text);
+  tutorActsUsed.push(act);
+  const snips=(act==='micro')? snippetsText(q,text) : null;
+  const messages=[{role:'system',content:aiContext(q,act,snips)}];
   tutorMsgs.filter(m=>m.role==='me'||m.role==='ai').slice(-6).forEach(m=>
     messages.push({role:m.role==='me'?'user':'assistant',content:m.text.replace(/\\\(([\s\S]*?)\\\)/g,'$1')}));
   messages.push({role:'user',content:text});
