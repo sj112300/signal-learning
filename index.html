@@ -505,6 +505,41 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 @media (prefers-reduced-motion: reduce){
   *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
+
+/* ================= 阶段 D：综合应用题 / 融合能力样式 ================= */
+.tag-cx{background:linear-gradient(135deg,#eef0ff,#e6f7f5);color:#4338ca;border:1px solid #d9dcfb;font-weight:600}
+.cx-path{margin:12px 0 4px;padding:11px 14px;border-radius:12px;
+  background:linear-gradient(135deg,#f7f8ff,#f2fbf9);border:1px dashed #cfd4f5;
+  font-size:13px;color:#4338ca;display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.cx-path b{font-weight:700;color:#3730a3;margin-right:4px}
+.cx-path-step{background:#fff;border:1px solid #dfe3fa;border-radius:999px;padding:3px 10px;
+  font-size:12px;color:#3730a3;white-space:nowrap}
+.cx-path-arrow{color:#a5b4fc;font-size:13px}
+.cx-steps{margin:10px 0;padding:12px 14px;border-radius:12px;background:#fbfcff;border:1px solid var(--line)}
+.cx-steps-h{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:9px}
+.cx-break{color:var(--bad);font-weight:600;font-size:12px}
+.cx-step{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px dashed var(--line);
+  font-size:13px;line-height:1.7;color:#374151}
+.cx-step.broken{background:#fff5f4;margin:0 -8px;padding:8px;border-radius:8px;border-top-color:transparent}
+.cx-step-n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.cx-step.broken .cx-step-n{background:var(--bad-soft);color:var(--bad)}
+.cx-step-b{flex:1;min-width:0}
+.cx-step-kp{display:inline-block;margin-right:8px;padding:1px 8px;border-radius:6px;
+  background:#eef2f7;color:#475569;font-size:11px;font-weight:600;white-space:nowrap}
+.fx-row{display:grid;grid-template-columns:1.5fr .9fr .8fr 1fr .6fr 2fr;gap:8px;
+  align-items:center;padding:9px 10px;border-bottom:1px solid var(--line);font-size:13px}
+.fx-row:last-of-type{border-bottom:none}
+.fx-head{font-size:12px;font-weight:700;color:var(--muted);background:#f8fafc;border-radius:8px}
+.fx-row>span:first-child{font-weight:600;color:var(--ink)}
+.fx-row small{display:block;font-weight:400;color:var(--muted);font-size:11px;margin-top:2px}
+.fx-row .scope-v{color:#475569;font-size:12px;line-height:1.5}
+@media(max-width:760px){
+  .fx-row{grid-template-columns:1fr 1fr;gap:6px;font-size:12px}
+  .fx-head{display:none}
+  .fx-row>span:first-child,.fx-row .scope-v{grid-column:1/-1}
+  .cx-path{gap:5px}
+}
 </style>
 </head>
 <body>
@@ -530,17 +565,18 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
         <h1>信号与系统 · 诊断式学习小模型</h1>
         <div class="sub">郑君里《信号与系统》(第三版) 第 1–4 章演示版 · 测 → 诊断 → 补弱 → 再测</div>
         <div class="hero-badges">
-          <span>15 个知识点</span><span>41 个题模</span><span>错因画像</span>
-          <span>BKT 掌握度</span><span>间隔复测</span>
+          <span>15 个知识点</span><span>47 个题模</span><span>错因画像</span>
+          <span>BKT 掌握度</span><span>间隔复测</span><span>综合应用题</span>
         </div>
       </div>
     </div>
     <div class="notice">
-      这是用于验证效果的最小原型：15 个知识点、41 个参数化题模（33 文字 + 8 图形），只覆盖第 1–4 章。
+      这是用于验证效果的最小原型：15 个知识点、47 个参数化题模（33 文字 + 8 图形 + 6 综合应用），只覆盖第 1–4 章。
       每轮按下方配置即时生成新题（数值、符号、选项顺序都会变化），不再使用固定题目列表。
       诊断不只看对与错：每个错误选项都绑定了具体错因，报告会给出<b>错因画像</b>、前置依赖检查、针对性处方和学习资料，并可针对薄弱点再练一轮。<br>
       <b>阶段 B</b> 起掌握度改用 BKT 概率模型（区分蒙对与失手），答题后可标「确定 / 不太确定」，下一题按信息量自适应挑选、置信度达标可提前结束。<br>
-      <b>阶段 C</b> 起错题会按「知识点 + 错因」进入 1 / 3 / 7 / 14 天的间隔复测队列，每次都是变式题（换参数、换题模、或文字 ↔ 图形换表征）；讲解助手会先选教学动作再回答，微讲义只依据本地教材片段。数据仅保存在本机浏览器中。
+      <b>阶段 C</b> 起错题会按「知识点 + 错因」进入 1 / 3 / 7 / 14 天的间隔复测队列，每次都是变式题（换参数、换题模、或文字 ↔ 图形换表征）；讲解助手会先选教学动作再回答，微讲义只依据本地教材片段。<br>
+      <b>阶段 D</b> 新增多知识点<b>综合应用题</b>：一道题同时关联 3–4 个知识点、分步作答，一次作答的证据按权重分发到每个知识点。报告单列「多知识点融合能力」，把「基本概念会不会」与「能不能合起来用」分开评价。数据仅保存在本机浏览器中。
     </div>
     <div class="card">
       <h3 style="margin-bottom:10px">出题配置 <span style="font-size:12px;font-weight:400;color:var(--muted)">每轮即时生成，配置自动记忆</span></h3>
@@ -548,7 +584,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
         <div class="cfg-col">
           <span class="cfg-label">题型</span>
           <div class="chips" id="cfg-types"></div>
-          <div class="cfg-tip" style="margin-top:18px;line-height:1.75">可多选。每轮按所选配置即时生成新题，数值、符号、图形参数与选项顺序都会变化；配置会自动记住。</div>
+          <div class="cfg-tip" style="margin-top:18px;line-height:1.75">可多选。每轮按所选配置即时生成新题，数值、符号、图形参数与选项顺序都会变化；配置会自动记住。<b>综合应用</b>是多知识点融合题，只要所选知识点范围与它关联的任一知识点重合就会被抽到。</div>
         </div>
         <div class="cfg-col" style="flex:0 0 170px;min-width:170px">
           <span class="cfg-label">难度</span>
@@ -587,7 +623,8 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
         ⑤ 报告给出<b>BKT 掌握概率</b>与模型自检（Brier / AUC，检验模型是否真的比累计正确率更准），并检查薄弱点的<b>前置依赖</b>，按「先补前置、再补本体」排序处方 →
         ⑥ 点击「再练一轮薄弱点」按薄弱范围再生成一批新题，完成迭代闭环。<br>
         ⑦ 做题时右下角「问一问」可以边做边问：给提示、讲知识点、定位错因，逐步展开而不直接剧透答案；阶段 C 起会先选一个<b>教学动作</b>（提示 / 反问 / 类比 / 微讲义 / 确认理解）再回答，避免每次都倒同一套解析。<br>
-        ⑧ 答错的题会进入<b>间隔复测队列</b>：1 / 3 / 7 / 14 天阶梯推进，每次用变式题检验判据能否迁移，连续 4 次通过即毕业。
+        ⑧ 答错的题会进入<b>间隔复测队列</b>：1 / 3 / 7 / 14 天阶梯推进，每次用变式题检验判据能否迁移，连续 4 次通过即毕业。<br>
+        ⑨ <b>综合应用题</b>会先给出「解题路径」（每步用到的知识点，不剧透答案），答完展示分步推导并指出最可能断在第几步；一次作答按权重计入所有关联知识点，报告据此判断是「概念没建立」还是「会认不会用」。
       </p>
       <div style="margin-top:20px">
         <button class="btn btn-primary" onclick="startQuiz()">开始诊断</button>
@@ -625,6 +662,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <div id="qmeta"></div>
       <div class="qfig" id="qfig" style="display:none"></div>
       <div class="qtext" id="qtext"></div>
+      <div class="cx-path" id="cx-path" style="display:none"></div>
       <div class="opts" id="qopts"></div>
       <div class="feedback" id="qfb"></div>
       <div style="margin-top:20px">
@@ -755,7 +793,9 @@ const MIS_MAP = {
  t31:['m08','m08','m08'], t32:['m07','m06','m08'], t33:['m03','m03','m03'],
  g01:['m01','m01','m12'], g02:['m09','m10','m06'], g03:['m04','m04','m04'],
  g04:['m05','m05','m05'], g05:['m06','m06','m01'], g06:['m06','m06','m09'],
- g07:['m09','m01','m01'], g08:['m08','m08','m08']
+ g07:['m09','m01','m01'], g08:['m08','m08','m08'],
+ x01:['m02','m01','m07'], x02:['m01','m06','m07'], x03:['m03','m06','m06'],
+ x04:['m02','m03','m01'], x05:['m08','m01','m06'], x06:['m08','m02','m10']
 };
 /* 取某题模三个干扰项的错因标签。优先级：题模输出里显式给出 > 登记表 > 按题型兜底。 */
 function misFor(tpl, n, raw){
@@ -763,7 +803,7 @@ function misFor(tpl, n, raw){
   if(Array.isArray(r) && r.length===n && r.every(x=>MIS[x])) return r.slice();
   const m=MIS_MAP[tpl.id];
   if(m && m.length===n && m.every(x=>MIS[x])) return m.slice();
-  const byType={concept:'m01',calc:'m10',property:'m02',system:'m04'};
+  const byType={concept:'m01',calc:'m10',property:'m02',system:'m04',complex:'m12'};
   const base=byType[tpl.type]||'m01';
   return Array.from({length:n},(_,i)=> (tpl.fig&&i===0)? 'm09' : base);
 }
@@ -784,7 +824,8 @@ const SCOPE_MAP = {
  t17:'iso',t18:'iso',t19:'iso',t20:'int',t21:'iso',t22:'iso',t23:'int',t24:'iso',
  t25:'iso',t26:'iso',t27:'int',t28:'iso',t29:'int',t30:'iso',t31:'int',
  t32:'int',t33:'iso',
- g01:'iso',g02:'int',g03:'iso',g04:'int',g05:'int',g06:'int',g07:'iso',g08:'iso'
+ g01:'iso',g02:'int',g03:'iso',g04:'int',g05:'int',g06:'int',g07:'iso',g08:'iso',
+ x01:'int',x02:'int',x03:'int',x04:'int',x05:'int',x06:'int'
 };
 function scopeFor(tpl){
   const s=SCOPE_MAP[tpl.id];
@@ -1040,7 +1081,7 @@ function figIssues(s){
 /* 符号规范（信号与系统）：所有数学一律用 M() 包进 \(...\)，禁止裸 LaTeX / Unicode 上下标混排。
    Sa 抽样函数、Re、单位一律正体 \mathrm{}；虚数单位用 j；0^- / 0^+ 用上标；卷积用 *。 */
 
-const TYPES = {concept:'概念判断', calc:'计算求解', property:'性质应用', system:'系统判别'};
+const TYPES = {concept:'概念判断', calc:'计算求解', property:'性质应用', system:'系统判别', complex:'综合应用'};
 
 /* 公式包装：运行时产出 \( ... \)，交给 KaTeX 渲染 */
 function M(tex){ return '\\('+tex+'\\)'; }
@@ -1547,6 +1588,165 @@ TG('g08','calc','k15','零极点图判稳定', d=>{
 });
 
 
+/* ================= 复杂多知识点综合题（阶段 D） =================
+   目的：不只考「单个知识点会不会」，还考「能不能把几个知识点融合起来解一道题」。
+   与隔离题的三点差别：
+     · tpl.kps 显式登记本题同时关联的多个知识点。这里不预设先后或依赖顺序，
+       它只是「一次作答要同时评价哪些知识点」的证据分发依据；
+     · gen() 额外返回 steps（分步解析，每步绑定一个知识点）与 stepMis
+       （三个干扰项各自主要错在第几步），答题后按步展示、按步归因；
+     · normalizeQuestion 把 Q-matrix 铺成多知识点近等权行，判分时把对错证据
+       按权重分发到每个关联知识点，报告另给「融合能力」口径。
+   题型结构与判分完全沿用：4 个选项、单选、错因标签、公式校验、去重。 */
+const COMPLEX_MIN_KP = 3;
+function TC(id, label, kps, gen){
+  TEMPLATES.push({id:id, type:'complex', kp:kps[0], kps:kps.slice(),
+                  label:label, gen:gen, complex:true, fig:false});
+}
+
+/* 综合 1：傅里叶变换对 → 卷积定理 → 卷积积分（k08 / k10 / k06） */
+TC('x01','系统响应的时频域求解',['k08','k10','k06'], d=>{
+  const a=ri(1,2+d), b=a+ri(1,3);
+  const E=p=>'\\mathrm{e}^{-'+p+'t}';
+  const ok=M('\\dfrac{1}{'+(b-a)+'}\\left('+E(a)+'-'+E(b)+'\\right)u(t)');
+  return {
+    q:'LTI 系统的冲激响应为 '+M('h(t)='+E(a)+'u(t)')+'，输入为 '+M('x(t)='+E(b)+'u(t)')+
+      '（'+M('a='+a)+'、'+M('b='+b)+'）。用变换域方法求零状态响应 '+M('y(t)')+'：',
+    correct:ok,
+    distractors:[
+      M('\\dfrac{1}{'+(b-a)+'}\\left('+E(b)+'-'+E(a)+'\\right)u(t)'),
+      M(E(a+b)+'u(t)'),
+      M('\\dfrac{1}{'+(b-a)+'}\\left('+E(a)+'-'+E(b)+'\\right)')
+    ],
+    mis:['m02','m01','m07'], stepMis:[3,1,3],
+    steps:[
+      {kp:'k08', t:'先写出两个单边指数信号的傅里叶变换对：'+M('X(\\omega)=\\dfrac{1}{'+b+'+\\mathrm{j}\\omega}')+'、'+M('H(\\omega)=\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}')+'。'},
+      {kp:'k10', t:'由卷积定理 '+M('y(t)=x(t)*h(t)\\leftrightarrow Y(\\omega)=X(\\omega)H(\\omega)')+'，时域卷积化为频域相乘：'+M('Y(\\omega)=\\dfrac{1}{('+a+'+\\mathrm{j}\\omega)('+b+'+\\mathrm{j}\\omega)}')+'。'},
+      {kp:'k06', t:'部分分式 '+M('Y(\\omega)=\\dfrac{1}{'+b+'-'+a+'}\\left(\\dfrac{1}{'+a+'+\\mathrm{j}\\omega}-\\dfrac{1}{'+b+'+\\mathrm{j}\\omega}\\right)')+'，逐项反变换得 '+ok+'。用图解法做卷积积分 '+M('\\int\\limits_{0}^{t}\\mathrm{e}^{-'+b+'\\tau}\\mathrm{e}^{-'+a+'(t-\\tau)}\\mathrm{d}\\tau')+' 会得到同一结果。'}
+    ],
+    exp:'① 用单边指数的傅里叶变换对写出 '+M('X(\\omega)')+'、'+M('H(\\omega)')+'；② 卷积定理 '+M('Y=XH')+'；③ 部分分式后逐项反变换，结果 '+ok+'。三个干扰项分别对应：相减顺序写反（性质 / 公式记反）、把两个指数直接相乘当成卷积（概念对象混淆）、漏掉因果因子 '+M('u(t)')+'（收敛域与存在条件）。'
+  };
+});
+
+/* 综合 2：拉氏微分性质 → 系统函数 → 零状态响应 → 部分分式（k13 / k15 / k05 / k14） */
+TC('x02','微分方程的 s 域求解',['k13','k15','k05','k14'], d=>{
+  const a=ri(1,2+d), b=ri(1,4);
+  const E='\\mathrm{e}^{-'+a+'t}';
+  const ok=M('\\dfrac{'+b+'}{'+a+'}\\left(1-'+E+'\\right)u(t)');
+  return {
+    q:'因果 LTI 系统满足 '+M('y^{\\prime}(t)+'+a+'y(t)='+b+'x(t)')+'，初始状态为零。当 '+M('x(t)=u(t)')+' 时，零状态响应 '+M('y(t)')+' 是：',
+    correct:ok,
+    distractors:[
+      M('\\dfrac{'+b+'}{'+a+'}'+E+'u(t)'),
+      M(''+b+'\\left(1-'+E+'\\right)u(t)'),
+      M('\\dfrac{'+b+'}{'+a+'}\\left(1-'+E+'\\right)')
+    ],
+    mis:['m01','m06','m07'], stepMis:[3,4,4],
+    steps:[
+      {kp:'k13', t:'对方程两边作单边拉氏变换：'+M('sY(s)-y(0^-)+'+a+'Y(s)='+b+'X(s)')+'。零状态下 '+M('y(0^-)=0')+'，微分性质把导数化为 '+M('sY(s)')+'。'},
+      {kp:'k15', t:'整理得系统函数 '+M('H(s)=\\dfrac{Y(s)}{X(s)}=\\dfrac{'+b+'}{s+'+a+'}')+'，极点 '+M('-'+a)+' 在左半平面，系统稳定，也保证终值定理可用。'},
+      {kp:'k05', t:'零状态响应按 '+M('Y(s)=H(s)X(s)')+' 求：阶跃输入对应 '+M('X(s)=1/s')+'，故 '+M('Y(s)=\\dfrac{'+b+'}{s(s+'+a+')}')+'。初始状态为零，所以没有零输入分量。'},
+      {kp:'k14', t:'部分分式 '+M('Y(s)=\\dfrac{'+b+'}{'+a+'}\\left(\\dfrac{1}{s}-\\dfrac{1}{s+'+a+'}\\right)')+'，逐项反变换得 '+ok+'，稳态值为 '+M('\\dfrac{'+b+'}{'+a+'}')+'。'}
+    ],
+    exp:'把四个知识点串成一条链：微分性质把微分方程变成代数方程，'+M('H(s)')+' 给出极点并判稳定，'+M('Y(s)=H(s)X(s)')+' 得到零状态响应，最后由部分分式反变换。结果为 '+ok+'。干扰项分别是：把零状态响应当成零输入响应（概念对象混淆）、漏掉积分产生的 '+M('1/'+a)+'（常数与系数）、漏掉 '+M('u(t)')+'（存在条件）。'
+  };
+});
+
+/* 综合 3：频移（调制）→ 频谱最高频率 → 抽样定理（k09 / k08 / k11） */
+TC('x03','调制信号的最低抽样频率',['k09','k08','k11'], d=>{
+  const fm=ri(2,2+d), f0=fm+ri(1,3);   /* f0>fm 保证四个候选数值互不相等 */
+  const F=n=>M(n+'\\,\\mathrm{kHz}');
+  const ok=F(2*(f0+fm));
+  return {
+    q:'带限信号 '+M('x(t)')+' 的最高频率为 '+M(fm+'\\,\\mathrm{kHz}')+'，用它调制载波得 '+
+      M('y(t)=x(t)\\cos(2\\pi f_0 t)')+'（'+M('f_0='+f0+'\\,\\mathrm{kHz}')+'）。'+
+      '按奈奎斯特低通抽样准则，对 '+M('y(t)')+' 无失真抽样所需的最低抽样频率是：',
+    correct:ok,
+    distractors:[F(2*fm),F(2*f0),F(f0+fm)],
+    mis:['m03','m06','m06'], stepMis:[1,2,3],
+    steps:[
+      {kp:'k09', t:'频移（调制）性质：'+M('x(t)\\cos(\\omega_0 t)\\leftrightarrow \\dfrac{1}{2}[X(\\omega-\\omega_0)+X(\\omega+\\omega_0)]')+'，其中 '+M('\\omega_0=2\\pi f_0')+'。频谱被整体搬到 '+M('\\pm f_0')+' 两侧，各占 '+M('f_m')+' 带宽。'},
+      {kp:'k08', t:'看幅度谱的正频率端：搬移后最高频率不是 '+M('f_m')+' 也不是 '+M('f_0')+'，而是 '+M('f_{\\max}=f_0+f_m='+(f0+fm)+'\\,\\mathrm{kHz}')+'。把「载频」当成「最高频率」是最常见的时频域映射错误。'},
+      {kp:'k11', t:'抽样后频谱以 '+M('f_s')+' 为周期延拓，不重叠要求 '+M('f_s\\ge 2f_{\\max}')+'，取等号即最低抽样频率 '+ok+'。'}
+    ],
+    exp:'① 频移性质说明调制把频谱搬到 '+M('\\pm f_0')+'；② 因此最高频率是 '+M('f_0+f_m='+(f0+fm))+' 而不是 '+M('f_m')+' 或 '+M('f_0')+'；③ 抽样定理 '+M('f_s\\ge 2f_{\\max}')+' 给出 '+ok+'。干扰项分别对应：忽略频谱搬移（时频域映射错误）、只按载频或漏乘 2（常数、系数与单位）。'
+  };
+});
+
+/* 综合 4：信号分类 → 尺度性质 → 傅里叶级数谱线 → 频谱（k01 / k09 / k07 / k08） */
+TC('x04','周期信号的尺度变换与谱线',['k07','k09','k01','k08'], d=>{
+  const T=ri(1,3+d), a=ri(2,4);
+  const ok=M('\\dfrac{'+a+'\\cdot 2\\pi}{'+T+'}');
+  return {
+    q:'周期矩形信号 '+M('x(t)')+' 的周期为 '+M('T='+T+'\\,\\mathrm{s}')+'，谱线间隔 '+M('\\omega_1=\\dfrac{2\\pi}{T}')+'。'+
+      '作时域压缩得 '+M('y(t)=x('+a+'t)')+'，则 '+M('y(t)')+' 的基波角频率是：',
+    correct:ok,
+    distractors:[
+      M('\\dfrac{2\\pi}{'+(a*T)+'}'),
+      M('\\dfrac{2\\pi}{'+T+'}'),
+      ok+'，同时 '+M('y(t)')+' 变成能量信号'
+    ],
+    mis:['m02','m03','m01'], stepMis:[3,2,1],
+    steps:[
+      {kp:'k01', t:'先判类型：'+M('x(t)')+' 是周期信号，属于功率信号（能量无限、平均功率有限）。时域压缩不会改变这一分类，'+M('y(t)')+' 仍是周期功率信号。'},
+      {kp:'k09', t:'尺度性质 '+M('x(at)\\leftrightarrow \\dfrac{1}{|a|}X(\\omega/a)')+'：时域压缩 '+M('a')+' 倍对应频域展宽 '+M('a')+' 倍、幅度乘 '+M('1/|a|')+'。对周期信号表现为周期由 '+M('T')+' 变为 '+M('\\dfrac{T}{'+a+'}')+'。'},
+      {kp:'k07', t:'谱线间隔与周期成反比：'+M('\\omega_1=\\dfrac{2\\pi}{T}')+'，故 '+M('\\omega_1^{\\prime}=\\dfrac{2\\pi}{T/'+a+'}='+a+'\\omega_1')+'。谐波性不变，谱线仍只出现在 '+M('n\\omega_1^{\\prime}')+' 处。'},
+      {kp:'k08', t:'注意区分「谱线位置」与「谱线幅度」：幅度谱会展宽并乘 '+M('1/'+a)+'，但基波位置只由周期决定，答案是 '+ok+'。'}
+    ],
+    exp:'① 周期信号是功率信号，压缩不改变类型；② 尺度性质说明时域压缩 '+M('a')+' 倍使周期变为 '+M('T/'+a)+'、频域展宽 '+M('a')+' 倍；③ 谱线间隔 '+M('\\omega_1=2\\pi/T')+' 与周期成反比，故基波角频率为 '+ok+'。干扰项分别对应：把压缩当成展宽（公式记反）、以为谱线间隔不变（时频域映射错误）、角频率算对却把功率信号判成能量信号（概念对象混淆）。'
+  };
+});
+
+/* 综合 5：冲激函数 → 卷积积分 → 冲激 / 阶跃响应 → 稳定性（k02 / k06 / k04 / k15） */
+TC('x05','由冲激响应求阶跃响应并判稳定',['k04','k06','k02','k15'], d=>{
+  const a=ri(1,2+d), c=ri(1,3);
+  const E='\\mathrm{e}^{-'+a+'t}';
+  const g=M('\\dfrac{'+c+'}{'+a+'}\\left(1-'+E+'\\right)u(t)');
+  return {
+    q:'因果 LTI 系统的冲激响应为 '+M('h(t)='+c+E+'u(t)')+'。关于该系统，下列结论正确的是：',
+    correct:'系统稳定，阶跃响应为 '+g,
+    distractors:[
+      '系统不稳定，阶跃响应为 '+g,
+      '系统稳定，阶跃响应为 '+M(c+E+'u(t)'),
+      '系统稳定，阶跃响应为 '+M(c+'\\left(1-'+E+'\\right)u(t)')
+    ],
+    mis:['m08','m01','m06'], stepMis:[4,3,3],
+    steps:[
+      {kp:'k02', t:'冲激响应 '+M('h(t)')+' 是零状态下对 '+M('\\delta(t)')+' 的响应；'+M('\\delta(t)')+' 是卷积恒等元，'+M('\\delta(t)*f(t)=f(t)')+'。'},
+      {kp:'k06', t:'阶跃响应等于 '+M('g(t)=u(t)*h(t)=\\int\\limits_{0^-}^{t}h(\\tau)\\mathrm{d}\\tau')+'，积分上限是 '+M('t')+' 而不是固定值，结果是 '+M('t')+' 的函数。'},
+      {kp:'k04', t:'代入 '+M('h(\\tau)='+c+'\\mathrm{e}^{-'+a+'\\tau}')+' 积分得 '+g+'。系数 '+M('1/'+a)+' 来自积分，最容易漏；也可由 '+M('h(t)=\\dfrac{\\mathrm{d}g(t)}{\\mathrm{d}t}')+' 反查。'},
+      {kp:'k15', t:'系统函数 '+M('H(s)=\\dfrac{'+c+'}{s+'+a+'}')+' 的极点 '+M('-'+a)+' 在左半平面，等价于 '+M('h(t)')+' 绝对可积，故系统稳定。稳定性只看极点，与零点无关。'}
+    ],
+    exp:'① '+M('\\delta(t)')+' 是卷积恒等元；② 阶跃响应是 '+M('u(t)*h(t)')+'，即对冲激响应从 '+M('0^-')+' 积分到 '+M('t')+'；③ 积分得 '+g+'，系数 '+M('1/'+a)+' 不能漏；④ 极点 '+M('-'+a)+' 在左半平面，系统稳定。干扰项分别对应：把衰减指数误判为不稳定（极点与稳定性判据）、把冲激响应直接当成阶跃响应（概念对象混淆）、漏掉 '+M('1/'+a)+'（常数与系数）。'
+  };
+});
+
+/* 综合 6：收敛域 → 部分分式 → 终值定理 → 稳定性（k12 / k14 / k13 / k15） */
+TC('x06','收敛域、反变换、终值与稳定性',['k12','k14','k13','k15'], d=>{
+  const a=ri(1,2+d), b=a+ri(1,3);
+  const E1='\\mathrm{e}^{-'+a+'t}', E2='\\mathrm{e}^{-'+b+'t}';
+  const ht='\\dfrac{1}{'+(b-a)+'}\\left('+E1+'-'+E2+'\\right)u(t)';
+  const h=M('h(t)='+ht);
+  return {
+    q:'因果系统的系统函数为 '+M('H(s)=\\dfrac{1}{(s+'+a+')(s+'+b+')}')+
+      '（'+M('a='+a)+'、'+M('b='+b)+'）。关于其冲激响应与稳定性，下列结论正确的是：',
+    correct:'系统稳定，'+h,
+    distractors:[
+      '系统不稳定，'+M('h(t)=\\mathrm{e}^{'+a+'t}u(t)+\\mathrm{e}^{'+b+'t}u(t)'),
+      '系统稳定，'+M('h(t)=\\dfrac{1}{'+(b-a)+'}\\left('+E2+'-'+E1+'\\right)u(t)'),
+      '系统稳定，'+M('h(t)=\\dfrac{1}{'+(b-a)+'}\\left('+E1+'+'+E2+'\\right)u(t)')
+    ],
+    mis:['m08','m02','m10'], stepMis:[4,2,2],
+    steps:[
+      {kp:'k12', t:'先定收敛域：因果（右边）信号的收敛域在最右侧极点的右边，即 '+M('\\mathrm{Re}(s)>-'+a)+'（因 '+M('a<b')+'，最右极点是 '+M('-'+a)+'）。同一个 '+M('H(s)')+' 配不同收敛域对应不同时域信号，必须连收敛域一起记。'},
+      {kp:'k14', t:'部分分式 '+M('H(s)=\\dfrac{1}{'+b+'-'+a+'}\\left(\\dfrac{1}{s+'+a+'}-\\dfrac{1}{s+'+b+'}\\right)')+'，逐项查表反变换得 '+h+'。'},
+      {kp:'k13', t:'终值定理 '+M('h(\\infty)=\\lim_{s\\to 0}sH(s)=0')+'，前提是 '+M('sH(s)')+' 的极点全在左半平面；本题满足，故冲激响应终值为 0，与 '+M('h(t)')+' 里两项都衰减一致。'},
+      {kp:'k15', t:'极点 '+M('-'+a)+'、'+M('-'+b)+' 均在左半平面，系统稳定；稳定性只由极点决定，与零点位置无关。'}
+    ],
+    exp:'① 收敛域由因果性和最右极点决定；② 部分分式反变换得 '+h+'；③ 终值定理 '+M('\\lim_{s\\to 0}sH(s)=0')+' 与两项都衰减一致；④ 两个极点全在左半平面，故稳定。干扰项分别对应：把左边极点误判成不稳定（极点与稳定性判据）、部分分式相减顺序写反（公式记反）、把减号写成加号（代入与代数计算）。'
+  };
+});
+
 /* ---------- 兜底题：仅当生成/校验全部失败时启用 ---------- */
 const FALLBACK = [
  {kp:'k01',q:M('f(t)=\\mathrm{e}^{-2t}u(t)')+' 属于：',correct:'能量信号',
@@ -1618,37 +1818,77 @@ function normalizeQuestion(tpl, d, raw){
   if(typeof correct!=='string'||!correct.trim()) return null;
   if(!Array.isArray(ds)||ds.length!==3||ds.some(x=>typeof x!=='string'||!x.trim())) return null;
   if(!KPS.some(k=>k.id===tpl.kp) || ![1,2,3].includes(d)) return null;
+  const isCx=!!tpl.complex;
+  /* 阶段 D：综合题必须显式登记多个知识点、分步解析，以及每个干扰项错在第几步。
+     任何一项缺失或不合格都丢弃重试，不让「挂了多知识点却没真考」的题混进题库。 */
+  if(isCx){
+    const kl=tpl.kps;
+    if(!Array.isArray(kl)||kl.length<COMPLEX_MIN_KP||kl.some(k=>!KPS.some(x=>x.id===k))) return null;
+    if(new Set(kl).size!==kl.length) return null;
+    const st=raw.steps;
+    if(!Array.isArray(st)||st.length<2||st.length>5) return null;
+    if(st.some(s=>!s||typeof s!=='object'||!KPS.some(x=>x.id===s.kp)||
+                   typeof s.t!=='string'||!s.t.trim()||texIssues(s.t).length)) return null;
+    if(kl.some(k=>!st.some(s=>s.kp===k))) return null;   /* 每个登记的知识点都要在分步里出现 */
+    const sm=raw.stepMis;
+    if(!Array.isArray(sm)||sm.length!==3||sm.some(x=>!Number.isInteger(x)||x<1||x>st.length)) return null;
+  }
   const fig=raw.fig, figCap=raw.figCap, hints=raw.hints, whyWrong=raw.whyWrong;
   if(fig!==undefined && figIssues(fig).length) return null;      /* 图形不合法：丢弃 */
   if(fig!==undefined && figCap===undefined) return null;          /* 有图必须有图注 */
   if(figCap!==undefined && (typeof figCap!=='string'||!figCap.trim())) return null;
   if(hints!==undefined && (!Array.isArray(hints)||hints.some(h=>typeof h!=='string'||!h.trim()))) return null;
   if(whyWrong!==undefined && (!Array.isArray(whyWrong)||whyWrong.length!==3)) return null;
-  const texts=[q,correct,...ds,exp,...(figCap?[figCap]:[]),...(hints||[])];
+  const texts=[q,correct,...ds,exp,...(figCap?[figCap]:[]),...(hints||[]),
+               ...(isCx? raw.steps.map(s=>s.t):[])];
   for(const t of texts){ if(texIssues(t).length) return null; }   /* 符号不合规：丢弃 */
   /* 阶段 A：把每个干扰项和它的错因绑成一个整体再洗牌，
-     洗牌后 q.mis[i] 始终对应 opts[i]，正确项位置 q.a 上的错因为 null。 */
+     洗牌后 q.mis[i] 始终对应 opts[i]，正确项位置 q.a 上的错因为 null。
+     阶段 D：综合题额外绑定 stepMis（错在第几步），随选项一起洗牌。 */
   const tags=misFor(tpl,3,raw);
-  const entries=[{text:correct,mis:null}].concat(ds.map((x,i)=>({text:x,mis:tags[i]})));
+  const sms=isCx? raw.stepMis : null;
+  const entries=[{text:correct,mis:null,step:null}].concat(
+    ds.map((x,i)=>({text:x,mis:tags[i],step:sms? sms[i]:null})));
   if(new Set(entries.map(e=>stripTex(e.text))).size!==4) return null;
   for(let i=3;i>0;i--){ const j=ri(0,i); const tmp=entries[i]; entries[i]=entries[j]; entries[j]=tmp; }
   const a=entries.findIndex(e=>e.mis===null);
   if(a<0) return null;
-  const opts=entries.map(e=>e.text), mis=entries.map(e=>e.mis);
+  const opts=entries.map(e=>e.text), mis=entries.map(e=>e.mis), stepMis=entries.map(e=>e.step);
+  /* 综合题的 Q-matrix 是显式多知识点近等权行；隔离题仍为主知识点 + 直接前置。 */
+  const kps = isCx? tpl.kps.map((k,i)=>({id:k,w:i===0?1:0.8})) : qkps(tpl.kp);
   const out={kp:tpl.kp, type:tpl.type, d:d, q:q, opts:opts, a:a, exp:exp,
-             mis:mis, kps:qkps(tpl.kp), scope:scopeFor(tpl), tpl:tpl.id||''};
+             mis:mis, kps:kps, scope:isCx?'int':scopeFor(tpl), tpl:tpl.id||''};
+  if(isCx){
+    out.complex=true; out.kpList=tpl.kps.slice();
+    out.steps=raw.steps.map(s=>({kp:s.kp,t:s.t})); out.stepMis=stepMis;
+  }
   if(fig!==undefined) { out.fig=fig; out.figCap=figCap; out.hasFig=true; }
   if(hints) out.hints=hints;
   if(whyWrong) out.whyWrong=whyWrong;
   return out;
 }
 
+/* 题模是否落在当前配置内。综合题按「任一关联知识点被选中」准入，
+   隔离题仍按主知识点；这样「仅薄弱点」强化轮也能抽到相关的综合题。 */
+function tplMatchesCfg(t,cfg){
+  if(!cfg.types.includes(t.type)) return false;
+  if(cfg.fig===false && t.fig) return false;
+  const ks=cfg.kps||[];
+  if(t.complex) return (t.kps||[]).some(k=>ks.includes(k));
+  return ks.includes(t.kp);
+}
+/* qbank 只存跨轮复盘所需的元数据，DOM / 解析文本不入库。 */
+function qbankRow(q, extra){
+  const row={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps, scope:q.scope};
+  if(q.complex){ row.complex=true; row.kpList=q.kpList; row.stepMis=q.stepMis;
+                 row.stepKps=(q.steps||[]).map(s=>s.kp); }
+  return Object.assign(row, extra||{});
+}
 /* 按配置生成一轮新题；返回数组元素与旧 QS 元素结构完全一致 */
 function generateQuestions(cfg, avoid){
   const avoidSet=new Set(avoid||[]);
-  let tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&cfg.kps.includes(t.kp)&&(cfg.fig!==false||!t.fig));
+  let tpls=TEMPLATES.filter(t=>tplMatchesCfg(t,cfg));
   let relaxed=false;
-  if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.types.includes(t.type)&&cfg.kps.includes(t.kp)&&(cfg.fig!==false||!t.fig)); relaxed=true; }
   if(!tpls.length){ tpls=TEMPLATES.filter(t=>cfg.fig!==false||!t.fig); relaxed=true; }
   const diffs=cfg.diffs.length?cfg.diffs:[1,2,3];
   const want=Math.max(1,Math.min(30,cfg.count|0||10));
@@ -1696,7 +1936,7 @@ function generateQuestions(cfg, avoid){
   }
   out.forEach(q=>{
     q.id=state.nextId++;
-    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps, scope:q.scope};
+    state.qbank[q.id]=qbankRow(q);
   });
   state.lastSigs=out.map(signature);
   state.relaxed=relaxed;
@@ -1710,7 +1950,11 @@ let state = {answers:{}, qbank:{}, roundLog:[], nextId:1, rounds:0, lastSigs:[],
 let QS=[];                 // 本轮生成的题目，元素结构与旧版完全一致
 let pool=[], idx=0, isRound2=false, isReview=false;
 
-function load(){ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(s && s.qbank){ state=s; if(!Array.isArray(state.roundLog)) state.roundLog=[]; if(!state.review||typeof state.review!=='object') state.review={}; } }catch(e){} }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(STORE)); if(s && s.qbank){ state=s; if(!Array.isArray(state.roundLog)) state.roundLog=[]; if(!state.review||typeof state.review!=='object') state.review={};
+  /* 升级兼容：旧存档的题型数组没有「综合应用」，首次加载时补上；
+     用 state 顶层标记区分「用户主动取消勾选」，只迁移一次。 */
+  if(!state.cxMigrated){ if(state.config && Array.isArray(state.config.types) && !state.config.types.includes('complex')) state.config.types.push('complex'); state.cxMigrated=true; }
+  } }catch(e){} }
 function save(){ try{ localStorage.setItem(STORE, JSON.stringify(state)); }catch(e){ /* 沙箱环境可能禁用 localStorage，失败时仅保留在内存中，不影响做题 */ } }
 function resetAll(){ if(confirm('清空全部作答记录、出题配置与复测队列？')){ state={answers:{},qbank:{},roundLog:[],nextId:1,rounds:0,lastSigs:[],config:null,review:{}}; save(); location.reload(); } }
 
@@ -1825,6 +2069,42 @@ function kpWeighted(kid){
   return {n:n, c:c, rate:n? c/n : null};
 }
 
+/* ================= 阶段 D：多知识点融合能力的评价口径 =================
+   综合题一次作答按 Q-matrix 权重分发到每个关联知识点。这里只回答
+   「基本概念会了，能不能合起来用」，不推断学习阶段、不排知识点先后。 */
+function fusionStat(kid){
+  let n=0,c=0,qn=0;
+  Object.keys(state.answers).forEach(id=>{
+    const q=state.qbank[id], a=state.answers[id];
+    if(!q || !q.complex) return;
+    const row=(q.kps||[]).find(x=>x.id===kid); if(!row) return;
+    qn++; n+=row.w; if(a.correct) c+=row.w;
+  });
+  return {n:n, c:c, qn:qn, rate:n? c/n : null};
+}
+function fusionRound(kid){
+  let n=0,c=0,qn=0;
+  (state.roundLog||[]).forEach(r=>{
+    if(!r.complex || !Array.isArray(r.kps)) return;
+    const row=r.kps.find(x=>x.id===kid); if(!row) return;
+    qn++; n+=row.w; if(r.correct) c+=row.w;
+  });
+  return {n:n, c:c, qn:qn, rate:n? c/n : null};
+}
+/* 综合题错因按「融合链条断在哪个知识点的哪一步」聚合 */
+function fusionStepStats(){
+  const out={};
+  Object.keys(state.answers).forEach(id=>{
+    const a=state.answers[id], q=state.qbank[id];
+    if(!q || !q.complex || a.correct || !a.step) return;
+    const kid=(q.stepKps||[])[a.step-1]; if(!kid) return;
+    if(!out[kid]) out[kid]={n:0, steps:{}};
+    out[kid].n++;
+    out[kid].steps[a.step]=(out[kid].steps[a.step]||0)+1;
+  });
+  return out;
+}
+
 /* ================= 阶段 B：BKT 掌握度模型（无状态重放） =================
    不再把「累计正确率」当唯一口径，改用带 guess / slip 的贝叶斯知识追踪：
      P(答对) = p·(1-slip) + (1-p)·guess，观测后按贝叶斯公式更新，再叠加学习转移。
@@ -1845,25 +2125,41 @@ function bktReplay(){
   const model={};
   KPS.forEach(k=>model[k.id]={p:BKT.pInit, n:0, c:0, lastTs:0});
   const rows=[];
+  /* 对单个知识点重放一次观测。w 是 Q-matrix 权重：
+     隔离题 w=1，与旧版逐字等价；综合题把同一次作答按权重分发到多个知识点，
+     权重小于 1 时证据强度与学习转移同步减弱（一次综合题不等于一次专项练习）。 */
+  const replayOne=(kid,w,ans,qid,record)=>{
+    const m=model[kid]; if(!m) return;
+    if(m.lastTs && ans.ts){
+      const days=Math.max(0,(ans.ts-m.lastTs)/86400000);
+      if(days>0) m.p=BKT.pInit+(m.p-BKT.pInit)*Math.pow(0.5,days/BKT.forgetHalf);
+    }
+    const par=bktParams(ans.conf);
+    const pred=m.p*(1-par.slip)+(1-m.p)*par.guess;
+    const base=m.n? (m.c+1)/(m.n+2) : 0.5;   /* 对照基线：带 Laplace 平滑的累计正确率 */
+    if(record) rows.push({id:qid, kid:kid, pred:pred, base:base,
+                          actual:ans.correct?1:0, conf:ans.conf||null, ts:ans.ts||0});
+    let post = ans.correct? m.p*(1-par.slip)/Math.max(pred,1e-9)
+                          : m.p*par.slip/Math.max(1-pred,1e-9);
+    post=m.p+(post-m.p)*w;
+    m.p=post+(1-post)*par.pLearn*w;
+    m.p=Math.max(0.001,Math.min(0.999,m.p));
+    m.n++; if(ans.correct) m.c++;
+    if(ans.ts) m.lastTs=ans.ts;
+  };
   Object.keys(state.answers).map(Number).sort((a,b)=>a-b).forEach(id=>{
     const a=state.answers[id], q=state.qbank[id];
     if(!a || !q) return;
-    const m=model[q.kp]; if(!m) return;
-    /* 遗忘：距该知识点上次作答越久，后验越向初始水平回落 */
-    if(m.lastTs && a.ts){
-      const days=Math.max(0,(a.ts-m.lastTs)/86400000);
-      if(days>0) m.p=BKT.pInit+(m.p-BKT.pInit)*Math.pow(0.5,days/BKT.forgetHalf);
+    if(!model[q.kp]) return;
+    /* 主知识点：记入模型自检样本，保持「每题一条」的语义不变 */
+    replayOne(q.kp, 1, a, id, true);
+    /* 阶段 D：综合题把同一次作答分发到其余关联知识点，不重复计样本 */
+    if(q.complex && Array.isArray(q.kps)){
+      q.kps.forEach(x=>{
+        if(x.id===q.kp || !model[x.id]) return;
+        replayOne(x.id, Math.max(0.05,Math.min(1,x.w)), a, id, false);
+      });
     }
-    const par=bktParams(a.conf);
-    const pred=m.p*(1-par.slip)+(1-m.p)*par.guess;
-    const base=m.n? (m.c+1)/(m.n+2) : 0.5;   /* 对照基线：带 Laplace 平滑的累计正确率 */
-    rows.push({id:id, kid:q.kp, pred:pred, base:base, actual:a.correct?1:0, conf:a.conf||null, ts:a.ts||0});
-    let post = a.correct? m.p*(1-par.slip)/Math.max(pred,1e-9)
-                        : m.p*par.slip/Math.max(1-pred,1e-9);
-    m.p=post+(1-post)*par.pLearn;
-    m.p=Math.max(0.001,Math.min(0.999,m.p));
-    m.n++; if(a.correct) m.c++;
-    if(a.ts) m.lastTs=a.ts;
   });
   return {model:model, rows:rows};
 }
@@ -1897,9 +2193,11 @@ function evalModels(rows){
    Q-matrix 里的前置知识点按 0.35 权重计入，难题略有加权。 */
 function qInfo(q, model){
   const row=q.kps||[{id:q.kp,w:1}];
-  let s=0;
-  row.forEach(x=>{ const m=model[x.id]; if(m) s+=x.w*4*m.p*(1-m.p); });
-  return s*(1+0.15*((q.d||1)-1));
+  let s=0, wsum=0;
+  row.forEach(x=>{ const m=model[x.id]; if(m){ s+=x.w*4*m.p*(1-m.p); wsum+=x.w; } });
+  /* 加权平均：综合题关联知识点多，不归一会把隔离题全部挤出队列 */
+  const base=wsum? s/wsum : 0;
+  return base*(1+0.15*((q.d||1)-1))*(q.complex? 1.12 : 1);
 }
 /* 自适应重排：保持已答题与总题数不变，只把「剩余未答题」按当前信息量降序重排。
    每答一题都会重算一次，所以下一题永远是当前最值得问的那道。 */
@@ -1915,7 +2213,7 @@ function adaptiveOrder(fromIdx){
 /* 本轮置信度是否收敛：覆盖到的知识点后验确定性均值 >= 0.82 即可提前结束 */
 function bktCoverage(){
   const model=bktReplay().model;
-  const kids=[...new Set(pool.map(q=>q.kp))];
+  const kids=[...new Set(pool.reduce((arr,q)=>arr.concat(q.complex&&q.kpList? q.kpList : [q.kp]),[]))];
   const got=kids.filter(k=>model[k]&&model[k].n>0);
   const conf=got.length? got.reduce((s,k)=>s+Math.max(model[k].p,1-model[k].p),0)/got.length : 0;
   return {conf:conf, ready:conf>=0.82 && got.length>=Math.min(3,kids.length), covered:got.length, total:kids.length};
@@ -2002,8 +2300,7 @@ function generateReviewQuestions(items, diffs){
   });
   out.forEach(q=>{
     q.id=state.nextId++;
-    state.qbank[q.id]={id:q.id, kp:q.kp, d:q.d, a:q.a, mis:q.mis, kps:q.kps, scope:q.scope,
-      reviewKey:q.reviewKey, variantKind:q.variantKind};
+    state.qbank[q.id]=qbankRow(q,{reviewKey:q.reviewKey, variantKind:q.variantKind});
   });
   save();
   return out;
@@ -2062,6 +2359,17 @@ function snippetCorpus(q){
     const P=KP_LESSONS[pid], pk=KPS.find(x=>x.id===pid);
     if(P) out.push({src:'前置 · '+(pk?pk.name:pid), text:P.brief});
   });
+  /* 阶段 D：综合题把所有关联知识点的讲解稿与分步推导一并纳入检索语料 */
+  if(q.complex && Array.isArray(q.kpList)){
+    q.kpList.forEach(id=>{
+      if(id===q.kp) return;
+      const P=KP_LESSONS[id], pk=KPS.find(x=>x.id===id);
+      if(P) out.push({src:'综合题关联 · '+(pk?pk.name:id), text:P.brief});
+    });
+    (q.steps||[]).forEach((s,i)=>{
+      if(s && s.t) out.push({src:'分步 '+(i+1)+' · 本题推导', text:s.t});
+    });
+  }
   const ans=state.answers[q.id];
   if(ans&&ans.mis&&MIS[ans.mis])
     out.push({src:'错因 · '+MIS[ans.mis].name, text:MIS[ans.mis].desc+' 改正动作：'+MIS[ans.mis].fix});
@@ -2188,6 +2496,20 @@ function startReview(){
   show('screen-quiz');
   renderQ();
 }
+/* 阶段 D：答题后展示分步推导，每步标出所用知识点；答错时标出最可能断在哪一步 */
+function cxStepsHtml(q, ok, step){
+  if(!q.complex || !Array.isArray(q.steps)) return '';
+  let h='<div class="cx-steps"><div class="cx-steps-h">分步推导 · 本题关联 '+
+    (q.kpList||[]).length+' 个知识点'+
+    (ok? '' : (step? '　<span class="cx-break">最可能断在第 '+step+' 步</span>' : ''))+'</div>';
+  q.steps.forEach((s,i)=>{
+    const k=KPS.find(x=>x.id===s.kp);
+    h+='<div class="cx-step'+(step===i+1?' broken':'')+'">'+
+       '<span class="cx-step-n">'+(i+1)+'</span>'+
+       '<div class="cx-step-b"><span class="cx-step-kp">'+(k?k.name:s.kp)+'</span>'+s.t+'</div></div>';
+  });
+  return h+'</div>';
+}
 function renderQ(){
   const q=pool[idx];
   document.getElementById('qbar').style.width=(idx/pool.length*100)+'%';
@@ -2201,6 +2523,7 @@ function renderQ(){
     '<span class="tag tag-ch">'+CHAPS[KPS.find(k=>k.id===q.kp).ch]+'</span>'+
     '<span class="tag tag-d'+q.d+'">'+(['','易','中','难'][q.d])+'</span>'+
     '<span class="tag" style="background:#eef2f7;color:#475569">'+KPS.find(k=>k.id===q.kp).name+'</span>'+
+    (q.complex? '<span class="tag tag-cx">综合应用 · '+(q.kpList||[]).length+' 个知识点 / '+(q.steps||[]).length+' 步</span>':'')+
     (q.hasFig? '<span class="tag tag-fig">图形题</span>':'')+
     (q.reviewKey? '<span class="tag tag-review">复测 · 第 '+q.reviewStage+' 阶 · '+
       (q.variantKind==='repr'?'换表征':q.variantKind==='param'?'换参数':'换题模')+'</span>':'');
@@ -2212,6 +2535,16 @@ function renderQ(){
     t2e(figEl.querySelector('.qfig-cap'));
   } else { figEl.style.display='none'; figEl.innerHTML=''; }
   document.getElementById('qtext').innerHTML=q.q;
+  /* 阶段 D：综合题先给「解题路径」，只列每步用到的知识点，不剧透结论 */
+  const cxEl=document.getElementById('cx-path');
+  if(cxEl){
+    if(q.complex && Array.isArray(q.steps)){
+      cxEl.innerHTML='<b>解题路径 · '+(q.kpList||[]).length+' 个知识点 / '+q.steps.length+' 步</b>'+
+        q.steps.map((s,i)=>'<span class="cx-path-step">'+(i+1)+'. '+
+          ((KPS.find(k=>k.id===s.kp)||{name:s.kp}).name)+'</span>').join('<span class="cx-path-arrow">→</span>');
+      cxEl.style.display='block';
+    } else { cxEl.style.display='none'; cxEl.innerHTML=''; }
+  }
   const box=document.getElementById('qopts'); box.innerHTML='';
   q.opts.forEach((o,i)=>{
     const d=document.createElement('div'); d.className='opt'; d.innerHTML='&nbsp;'+String.fromCharCode(65+i)+'. '+o;
@@ -2232,9 +2565,12 @@ function choose(i){
   opts[0].dataset.done='1';
   const ok = i===q.a;
   const mis = ok? null : (q.mis && q.mis[i]) || null;
+  const step = ok? null : (q.stepMis && q.stepMis[i]) || null;
   const now=Date.now();
-  state.answers[q.id]={correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now};
-  state.roundLog.push({qid:q.id, pos:idx+1, kp:q.kp, correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now});
+  state.answers[q.id]={correct:ok, chosen:i, mis:mis, scope:q.scope, ts:now,
+                       complex:!!q.complex, step:step, kps:q.kps||null};
+  state.roundLog.push({qid:q.id, pos:idx+1, kp:q.kp, correct:ok, chosen:i, mis:mis,
+                       scope:q.scope, ts:now, complex:!!q.complex, step:step, kps:q.kps||null});
   /* 阶段 C：复测题按结果推进 / 回退阶梯；普通题答错则入队或回退 */
   if(q.reviewKey) updateReview(q, ok, now);
   else if(!ok && mis) upsertReview(q, mis, now);
@@ -2247,7 +2583,11 @@ function choose(i){
   fb.className='feedback '+(ok?'ok':'bad');
   fb.innerHTML='<b>'+(ok?'回答正确':'回答错误，正确答案是 '+String.fromCharCode(65+q.a))+'</b>'+
     (!ok && mis && MIS[mis]? '<span class="mis-inline"><b>错因定位：'+MIS[mis].name+'</b>　'+MIS[mis].desc+
+      (step? '<br><b>融合链条：</b>这类错误通常卡在第 '+step+' 步'+
+        (q.steps&&q.steps[step-1]? '（'+(KPS.find(k=>k.id===q.steps[step-1].kp)||{name:''}).name+'）':'')+
+        '，先把这一步的判据单独复核一遍。' : '')+
       '<br>改正动作：'+MIS[mis].fix+'</span>' : '')+
+    (q.complex? cxStepsHtml(q, ok, step) : '')+
     '<span class="explain">'+q.exp+'</span>'+
     (q.reviewKey? '<span class="review-inline"><b>复测'+(ok?'通过':'未通过')+'：</b>'+
       (ok? '间隔已拉长':'间隔重置为 1 天后')+'。这道题'+
@@ -2448,6 +2788,48 @@ function showReport(){
   }
   html+='</div>';
 
+  /* 阶段 D：多知识点融合能力。综合题一次作答按权重分发到每个关联知识点，
+     这里把「基本概念会不会」与「能不能合起来用」分成两个口径并排看。 */
+  const fstep=fusionStepStats();
+  const cxKps=KPS.filter(k=>fusionStat(k.id).qn>0);
+  html+='<div class="card"><h3 style="margin-bottom:6px">多知识点融合能力 <span class="tag tag-cx">阶段 D</span></h3>'+
+    '<div class="note" style="margin:0 0 10px">综合应用题同时关联多个知识点，一次作答按权重分发到每个知识点，'+
+    'BKT 后验也会一并吸收。这张表只看综合题口径，用来回答「基本概念会了，能不能合起来用」，'+
+    '不推断学习阶段、不排知识点先后。表中综合题两列是按 Q-matrix 权重累加的证据量'+
+    '（主知识点计 1、其余关联知识点计 0.8），不是题目道数。</div>';
+  if(!cxKps.length){
+    html+='<p style="font-size:14px;color:#374151">还没有做过综合应用题。出题配置里保留「综合应用」题型，做一轮即可看到融合能力评价。</p>';
+  } else {
+    html+='<div class="fx-row fx-head"><span>知识点</span><span>综合题累计（加权）</span><span>本轮综合（加权）</span>'+
+      '<span>隔离题（累计）</span><span>BKT 后验</span><span>融合判读</span></div>';
+    cxKps.forEach(k=>{
+      const f=fusionStat(k.id), fr=fusionRound(k.id), iso=kpStat(k.id), bm=bk.model[k.id];
+      let verdict='';
+      if(iso.rate!==null && f.rate!==null){
+        if(iso.rate>=0.6 && f.rate<0.6) verdict='会认不会用：隔离题稳、综合题卡，缺的是跨知识点串联练习。';
+        else if(iso.rate<0.6 && f.rate<0.6) verdict='基础与融合都弱：先回定义补概念，再回到综合题。';
+        else if(iso.rate<0.6 && f.rate>=0.6) verdict='综合题反而更好：留意隔离题粗心或猜测，做完逐步复核。';
+        else verdict='两类都稳，知识点融合已过关。';
+      } else verdict=f.rate===null? '暂无综合题正确率样本':'暂无隔离题样本';
+      const si=fstep[k.id];
+      const stepsTxt=si? Object.keys(si.steps).sort((a,b)=>si.steps[b]-si.steps[a]).slice(0,2)
+        .map(n=>'第 '+n+' 步').join('、') : '';
+      html+='<div class="fx-row"><span>'+k.name+
+        (stepsTxt? '<small>融合链条最常断在 '+stepsTxt+'（'+si.n+' 次）</small>':'')+'</span>'+
+        '<span>'+(f.qn? f.c.toFixed(1)+' / '+f.n.toFixed(1)+'（'+Math.round(f.rate*100)+'%）':'—')+'</span>'+
+        '<span>'+(fr.qn? fr.c.toFixed(1)+' / '+fr.n.toFixed(1):'—')+'</span>'+
+        '<span>'+(iso.n? iso.c+'/'+iso.n+'（'+Math.round(iso.rate*100)+'%）':'—')+'</span>'+
+        '<span class="bkt-p">'+Math.round(bm.p*100)+'%</span>'+
+        '<span class="scope-v">'+verdict+'</span></div>';
+    });
+    const cxIds=Object.keys(state.answers).filter(id=>state.qbank[id]&&state.qbank[id].complex);
+    const cxOk=cxIds.filter(id=>state.answers[id].correct).length;
+    html+='<div class="note">综合应用题累计作答 '+cxIds.length+' 道、答对 '+cxOk+
+      ' 道，覆盖 '+cxKps.length+' 个知识点（'+cxKps.map(k=>k.name).join('、')+
+      '）。上方「BKT 掌握概率」表已按权重吸收这些综合题证据。</div>';
+  }
+  html+='</div>';
+
   /* 薄弱点处方 */
   html+='<div class="card"><h3 style="margin-bottom:6px">薄弱点处方</h3>';
   if(!wk.length){
@@ -2617,8 +2999,10 @@ function tutorOnNewQuestion(){
   tutorHintLevel=0;
   tutorActsUsed=[];                 /* 每题重新允许各教学动作出现一次 */
   const kp=KPS.find(k=>k.id===pool[idx].kp), bm=bktStat(kp.id);
+  const cq=pool[idx];
   tutorPush('sys','—— 第 '+(idx+1)+' 题 · '+kp.name+' · BKT '+
-    Math.round(bm.p*100)+'%（'+bktLabel(bm.p).label+'）——');
+    Math.round(bm.p*100)+'%（'+bktLabel(bm.p).label+'）'+
+    (cq.complex? ' · 综合应用（'+(cq.kpList||[]).length+' 个知识点 / '+(cq.steps||[]).length+' 步）':'')+' ——');
 }
 function toggleTutor(){
   const p=document.getElementById('tutorPanel'); if(!p) return;
@@ -2675,7 +3059,13 @@ function genericHints(q){
   ];
 }
 function hintAnswer(q){
-  const hs=(q.hints&&q.hints.length)? q.hints : genericHints(q);
+  let hs=(q.hints&&q.hints.length)? q.hints : genericHints(q);
+  /* 阶段 D：综合题的递进提示按步走，只报知识点与判据方向，不剧透分步结论 */
+  if(q.complex && Array.isArray(q.steps)){
+    hs=q.steps.map((s,i)=>'第 '+(i+1)+' 步（'+(KPS.find(k=>k.id===s.kp)||{name:s.kp}).name+
+      '）：这一步要用哪个判据 / 变换对？先把它的适用条件说清楚，再动笔。');
+    hs.push('把各步串起来之后，点「看完整解析」对照完整推导。');
+  }
   tutorHintLevel++;
   const i=Math.min(tutorHintLevel-1,hs.length-1);
   let t='提示 '+tutorHintLevel+'／'+hs.length+'：'+hs[i];
@@ -2735,7 +3125,14 @@ function formulaAnswer(q){
     '页面上所有数学都交给 KaTeX 排版，公式块外不会出现裸 LaTeX 或 Unicode 上下标。';
 }
 function solveAnswer(q){
-  return '完整解析：\n\n'+q.exp+'\n\n正确答案是 '+String.fromCharCode(65+q.a)+'. '+q.opts[q.a]+
+  let t='完整解析：\n\n'+q.exp;
+  /* 阶段 D：综合题先给分步推导，每步标出所用知识点，再给汇总解析 */
+  if(q.complex && Array.isArray(q.steps)){
+    t='分步推导（本题关联 '+(q.kpList||[]).length+' 个知识点 / '+q.steps.length+' 步）：\n\n'+
+      q.steps.map((s,i)=>'第 '+(i+1)+' 步 · '+(KPS.find(k=>k.id===s.kp)||{name:s.kp}).name+'\n'+s.t).join('\n\n')+
+      '\n\n—— 汇总解析 ——\n'+q.exp;
+  }
+  return t+'\n\n正确答案是 '+String.fromCharCode(65+q.a)+'. '+q.opts[q.a]+
     '\n\n（看完解析再作答时，掌握度统计仍会照常记录，心里有数就好。）';
 }
 /* 阶段 C：教学动作对应的四种新讲法。共同点是不直接剧透答案。 */
@@ -2830,6 +3227,11 @@ function aiContext(q, act, snips){
     '【题目】'+q.q+'\n【选项】'+q.opts.map((o,i)=>String.fromCharCode(65+i)+'. '+o).join('；')+
     '\n【正确答案】'+String.fromCharCode(65+q.a)+'\n【解析】'+q.exp+
     '\n【知识点】'+kp.name+'\n【前置知识点】'+pre+
+    (q.complex? '\n【题型】多知识点综合应用题，同时关联：'+
+      (q.kpList||[]).map(id=>{const k=KPS.find(x=>x.id===id);return k?k.name:id;}).join('、')+
+      '\n【分步结构】'+(q.steps||[]).map((s,i)=>{
+        const k=KPS.find(x=>x.id===s.kp); return '第 '+(i+1)+' 步 · '+(k?k.name:s.kp);
+      }).join('；')+'。请按步骤串起多个知识点，说明每步用了哪个知识点、为什么，不要把综合题当成单个概念的题。' : '')+
     (L? '\n【知识点讲解】'+L.brief+' 要点：'+L.points.join('；') : '')+
     '\n【学生作答】'+(ans? (ans.correct?'已答对':'答错，选了 '+String.fromCharCode(65+ans.chosen)):'尚未作答')+
     '\n【本题各干扰项绑定的错因】'+(q.mis||[]).map((m,i)=> m&&MIS[m]?
