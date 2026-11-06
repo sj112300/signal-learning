@@ -246,6 +246,265 @@ h1{font-size:22px;margin-bottom:4px}
   .rv-row{grid-template-columns:1.4fr .7fr .9fr;gap:5px;font-size:12px}
   .rv-row>span:nth-child(4){display:none}
 }
+/* ================= 视觉升级层 =================
+   纯样式：只覆盖配色、层次、阴影与动效；不改动任何 JS 逻辑、
+   KaTeX 字体覆盖规则、图形题 SVG 定位、讲解浮层尺寸与响应式断点语义。
+   如需回滚，删除本段即可恢复原貌。 */
+:root{
+  --bg:#f3f5fb; --card:#ffffff; --ink:#111827; --muted:#667085;
+  --accent:#4f46e5; --accent-2:#2563eb; --accent-soft:#eef0ff;
+  --ok:#059669; --ok-soft:#e9f8f1;
+  --warn:#d97706; --warn-soft:#fdf4e6;
+  --bad:#dc2626; --bad-soft:#fdf0ef;
+  --line:#e6e9f2; --radius:18px;
+  --teal:#0d9488;
+  --shadow-sm:0 1px 2px rgba(16,24,40,.04),0 4px 14px rgba(16,24,40,.045);
+  --shadow-md:0 10px 30px rgba(16,24,40,.10);
+}
+body{
+  position:relative;color:var(--ink);padding:30px 16px 80px;
+  background:
+    radial-gradient(1100px 620px at 10% -10%,rgba(99,102,241,.13),transparent 62%),
+    radial-gradient(900px 520px at 94% 2%,rgba(13,148,136,.09),transparent 60%),
+    linear-gradient(180deg,#f8f9fe 0%,#f1f4fa 100%);
+  background-attachment:fixed;-webkit-font-smoothing:antialiased;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(79,70,229,.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(79,70,229,.035) 1px,transparent 1px);
+  background-size:34px 34px;
+  -webkit-mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 640px);
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.6),transparent 640px);
+}
+.wrap{position:relative;z-index:1}
+::selection{background:rgba(79,70,229,.18);color:#1e1b4b}
+a{color:var(--accent)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#d6dbea;border:3px solid transparent;background-clip:content-box;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:#b9c0d8;border:3px solid transparent;background-clip:content-box}
+
+/* ---- 首页品牌头图 ---- */
+.hero{
+  position:relative;overflow:hidden;border-radius:20px;padding:30px 32px 28px;margin-bottom:18px;
+  background:linear-gradient(125deg,#1e1b4b 0%,#312e81 44%,#1d4ed8 100%);
+  box-shadow:0 14px 34px rgba(38,35,110,.24);color:#fff;
+}
+.hero::after{
+  content:"";position:absolute;right:-70px;top:-110px;width:340px;height:340px;border-radius:50%;
+  background:radial-gradient(circle,rgba(103,232,249,.22),transparent 66%);pointer-events:none;
+}
+.hero-wave{position:absolute;left:0;right:0;bottom:0;width:100%;height:135px;opacity:.5;pointer-events:none}
+.hero-inner{position:relative;z-index:1}
+.hero-eyebrow{
+  display:inline-block;font-size:10.5px;letter-spacing:.16em;font-weight:700;color:#dbe3ff;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  padding:4px 11px;border-radius:20px;margin-bottom:14px;
+}
+.hero h1{font-size:26px;font-weight:750;letter-spacing:.01em;color:#fff;margin-bottom:6px}
+.hero .sub{color:#c7d5ff;font-size:13px;margin-bottom:18px}
+.hero-badges{display:flex;flex-wrap:wrap;gap:7px}
+.hero-badges span{
+  font-size:11.5px;padding:4px 11px;border-radius:20px;color:#eef2ff;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.17);
+}
+
+/* ---- 说明卡与通用卡片 ---- */
+.notice{
+  background:linear-gradient(180deg,#ffffff,#fafbff);border:1px solid #e3e7f5;
+  border-left:4px solid var(--accent);border-radius:12px;padding:14px 18px;margin-bottom:18px;
+  font-size:13px;color:#3f4a63;line-height:1.85;box-shadow:var(--shadow-sm);
+}
+.notice b{color:var(--accent);font-weight:700}
+.card{
+  background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:var(--radius);
+  padding:24px;box-shadow:var(--shadow-sm);
+  transition:box-shadow .2s ease,border-color .2s ease;
+}
+.card:hover{box-shadow:var(--shadow-md);border-color:#dbe0f0}
+.card h3{
+  font-size:16px;font-weight:700;letter-spacing:.01em;color:#1e293b;
+  display:flex;align-items:center;flex-wrap:wrap;gap:9px;
+}
+.card h3::before{
+  content:"";width:4px;height:16px;border-radius:3px;flex:0 0 4px;
+  background:linear-gradient(180deg,var(--accent),var(--teal));
+}
+.card p{color:#4b5563;line-height:1.85}
+.note{color:#7b8598;line-height:1.75}
+
+/* ---- 按钮 ---- */
+.btn{
+  border-radius:11px;padding:11px 22px;font-size:14.5px;font-weight:650;letter-spacing:.01em;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease,border-color .16s ease;
+}
+.btn-primary{
+  background:linear-gradient(135deg,#4f46e5,#2563eb);color:#fff;
+  border:1px solid rgba(255,255,255,.14);box-shadow:0 6px 16px rgba(59,70,199,.28);
+}
+.btn-primary:hover{
+  background:linear-gradient(135deg,#4338ca,#1d4ed8);transform:translateY(-2px);
+  box-shadow:0 10px 22px rgba(59,70,199,.36);
+}
+.btn-primary:active{transform:translateY(0)}
+.btn-ghost{
+  background:#fff;color:#475569;border:1px solid #dfe3ee;
+  box-shadow:0 1px 2px rgba(16,24,40,.03);
+}
+.btn-ghost:hover{color:var(--accent);border-color:#c7cdf5;background:#fafaff;transform:translateY(-1px)}
+.btn:disabled{opacity:.45;transform:none!important;box-shadow:none;cursor:not-allowed}
+.btn+.btn{margin-left:8px}
+
+/* ---- 标签与药丸 ---- */
+.tag{font-size:11.5px;padding:3px 10px;border:1px solid transparent;font-weight:600;letter-spacing:.01em}
+.tag-ch{background:#eef0ff;color:#4338ca;border-color:#dcdfff}
+.tag-d1{background:#e9f8f1;color:#047857;border-color:#c9ecd9}
+.tag-d2{background:#fdf5e7;color:#b45309;border-color:#f6e3c0}
+.tag-d3{background:#fdf0ef;color:#b91c1c;border-color:#f6d5d2}
+.tag-fig{background:#eef2ff;color:#4338ca;border-color:#dfe4ff}
+.tag-review{background:#f3f0ff;color:#6d28d9;border-color:#e6ddff}
+.pill{font-size:11.5px;font-weight:600;padding:3px 10px;border:1px solid transparent}
+.pill.ok{background:#e9f8f1;color:#047857;border-color:#c9ecd9}
+.pill.warn{background:#fdf5e7;color:#b45309;border-color:#f6e3c0}
+.pill.bad{background:#fdf0ef;color:#b91c1c;border-color:#f6d5d2}
+
+/* ---- 进度条与题目 ---- */
+.pbar{height:8px;background:#e8ebf5;border-radius:8px;margin:16px 0 22px;
+  box-shadow:inset 0 1px 2px rgba(16,24,40,.06)}
+.pbar i{background:linear-gradient(90deg,#6366f1,#2563eb 60%,#0d9488);border-radius:8px;
+  box-shadow:0 0 10px rgba(79,70,229,.35);transition:width .45s cubic-bezier(.4,0,.2,1)}
+#quiz-title{font-size:13px;font-weight:700;color:#475569;letter-spacing:.03em}
+.qtext{font-size:17px;line-height:2;color:#1f2937;font-weight:500;margin-bottom:20px}
+.opts{gap:11px}
+.opt{
+  border:1.5px solid #e4e8f2;border-radius:12px;padding:13px 17px;background:#fff;font-size:15px;
+  box-shadow:0 1px 2px rgba(16,24,40,.03);
+  transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease,background .14s ease;
+}
+.opt:hover{border-color:#a5b0f0;background:#fafaff;transform:translateX(3px);
+  box-shadow:0 4px 14px rgba(79,70,229,.1)}
+.opt.sel{border-color:var(--accent);background:#f4f5ff;box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.opt.right{border-color:#34d399;background:#ecfdf5;box-shadow:0 0 0 3px rgba(16,185,129,.12)}
+.opt.wrong{border-color:#f87171;background:#fef2f2;box-shadow:0 0 0 3px rgba(239,68,68,.1)}
+.opt.right:hover,.opt.wrong:hover{transform:none}
+.feedback{border-radius:12px;padding:15px 18px;font-size:14px;line-height:1.85;
+  box-shadow:var(--shadow-sm);border:1px solid transparent}
+.feedback.ok{background:linear-gradient(180deg,#f0fdf7,#e9f8f1);border-color:#bfe9d5}
+.feedback.bad{background:linear-gradient(180deg,#fff5f4,#fdf0ef);border-color:#f6d0cd}
+.feedback b{font-weight:700;font-size:14.5px}
+.explain{color:#374151;display:block;margin-top:8px;padding-top:8px;
+  border-top:1px dashed rgba(0,0,0,.08)}
+.mis-inline{background:#fffdf8;border:1px solid #f2dcb0;border-radius:9px;padding:10px 12px;color:#92400e}
+.review-inline{background:#f6f3ff;border:1px solid #e3d9ff;color:#5b21b6;padding:10px 13px;border-radius:9px}
+.conf-box{background:#fff;border:1px solid #e7eaf4;border-radius:10px;box-shadow:var(--shadow-sm)}
+.conf-box button{background:#f7f8fd;border:1px solid #e2e6f1;border-radius:18px;padding:5px 13px;
+  font-size:12.5px;color:#475569;transition:.14s}
+.conf-box button:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:translateY(-1px)}
+.qfig{border:1px solid #e6e9f4;border-radius:12px;
+  background:linear-gradient(180deg,#fcfdff,#f8faff);
+  box-shadow:inset 0 1px 3px rgba(16,24,40,.03)}
+.qfig-cap{background:#f5f7fd;color:#7b8598;border-top:1px solid #eaedf6;font-size:11.5px}
+
+/* ---- 报告 ---- */
+#screen-report > h1{
+  font-size:24px;font-weight:750;letter-spacing:.01em;color:#1e293b;
+  padding-bottom:12px;margin-bottom:6px;border-bottom:1px solid #e2e6f2;position:relative;
+}
+#screen-report > h1::after{
+  content:"";position:absolute;left:0;bottom:-1px;width:82px;height:3px;border-radius:3px;
+  background:linear-gradient(90deg,var(--accent),var(--teal));
+}
+#screen-report > .sub{font-size:13px;margin-bottom:22px}
+.summary{border-radius:14px;padding:17px 20px;font-size:15px;line-height:1.8;
+  border:1px solid transparent;box-shadow:var(--shadow-sm)}
+.summary.good{background:linear-gradient(180deg,#f0fdf7,#e6f7ee);border-color:#c4ebd7;color:#065f46}
+.summary.mid{background:linear-gradient(180deg,#fffbf0,#fdf3e0);border-color:#f4dfb4;color:#92400e}
+.summary.poor{background:linear-gradient(180deg,#fff5f4,#fdeceb);border-color:#f5cdc9;color:#991b1b}
+.kp-row{padding:11px 8px;border-bottom:1px solid #eef0f6;border-radius:8px;transition:background .15s}
+.kp-row:hover{background:#fafbff}
+.kp-name{font-weight:600;color:#1e293b}
+.kp-bar{height:9px;background:#eef0f6;border-radius:6px}
+.chap-h{font-size:12px;letter-spacing:.06em;color:#8a94a8;border:none;margin:18px 0 6px;padding:0 8px}
+.rx{border-left:4px solid #f0716a;background:linear-gradient(180deg,#fffafa,#fff7f7);
+  border-radius:0 12px 12px 0;padding:15px 19px;box-shadow:var(--shadow-sm)}
+.rx.prereq{border-left-color:#f0b45a;background:linear-gradient(180deg,#fffdf8,#fffaf0)}
+.rx h4{font-size:15.5px;color:#1e293b}
+.mis-row{border:1px solid #eaecf4;border-left:4px solid #f0b45a;border-radius:0 12px 12px 0;
+  padding:13px 17px;box-shadow:var(--shadow-sm);background:#fff}
+.mis-row.hit{border-left-color:#f0716a;background:linear-gradient(180deg,#fffafa,#fff)}
+.mis-rank{background:#eef0ff;color:#4338ca}
+.scope-row,.bkt-row,.rv-row{border-bottom-color:#eef0f6}
+.bkt-head,.scope-head{color:#8a94a8;letter-spacing:.04em}
+.eval-cell{background:linear-gradient(180deg,#fff,#f9faff);border:1px solid #e6e9f4;
+  border-radius:11px;box-shadow:var(--shadow-sm)}
+.eval-cell b{color:var(--accent);font-size:21px;font-variant-numeric:tabular-nums}
+.rv-due{background:linear-gradient(180deg,#faf8ff,#f5f2ff);border:1px solid #e9e1ff;border-radius:11px}
+.rv-row.due{background:linear-gradient(90deg,#fff2f1,#fff8f7)}
+
+/* ---- 出题配置 ---- */
+.cfg-label{color:#475569;font-size:12.5px;letter-spacing:.02em}
+.chip span{border:1px solid #e2e6f0;background:#fff;color:#64748b;border-radius:20px;padding:5px 12px;
+  box-shadow:0 1px 2px rgba(16,24,40,.02);transition:.14s}
+.chip:hover span{border-color:#a5b0f0;color:var(--accent);background:#fafaff;transform:translateY(-1px)}
+.chip input:checked + span{background:linear-gradient(135deg,#eef0ff,#e6f6ff);border-color:#b9c0ff;
+  color:#4338ca;font-weight:700;box-shadow:0 2px 8px rgba(79,70,229,.12)}
+.cfg-num{border:1px solid #dfe3ee;border-radius:9px;padding:7px 10px;background:#fbfcff;
+  font-variant-numeric:tabular-nums}
+.cfg-num:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.14)}
+.cfg-ch{color:#8a94a8;letter-spacing:.05em;font-size:10.5px}
+.mini{color:var(--accent);font-weight:600}
+
+/* ---- 讲解浮层 ---- */
+#tutorFab{border-radius:28px;padding:13px 22px;
+  background:linear-gradient(135deg,#4f46e5,#2563eb);
+  box-shadow:0 10px 26px rgba(59,70,199,.38);font-size:13.5px;letter-spacing:.02em;
+  transition:transform .18s ease,box-shadow .18s ease}
+#tutorFab:hover{background:linear-gradient(135deg,#4338ca,#1d4ed8);transform:translateY(-3px);
+  box-shadow:0 14px 32px rgba(59,70,199,.46)}
+#tutorPanel{border-radius:16px;border:1px solid #e2e6f2;box-shadow:0 20px 50px rgba(16,24,40,.2)}
+.tutor-hd{background:linear-gradient(135deg,#312e81,#4338ca);color:#fff;font-size:13px;padding:12px 14px}
+.tutor-hd button{color:rgba(255,255,255,.8)}
+.tutor-hd button:hover{color:#fff}
+.tutor-badge{background:rgba(255,255,255,.16);color:#eef2ff}
+.tutor-badge.ai{background:rgba(16,185,129,.28);color:#d1fae5}
+.tutor-log{background:linear-gradient(180deg,#fafbff,#f5f7fd)}
+.msg{border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.msg.me{background:linear-gradient(135deg,#4f46e5,#2563eb);border-bottom-right-radius:4px}
+.msg.ai{background:#fff;border:1px solid #e8ebf4;border-bottom-left-radius:4px}
+.msg.sys{color:#8a94a8;letter-spacing:.02em}
+.tutor-quick{background:#fff;padding:10px 12px;gap:7px}
+.tutor-quick button{border:1px solid #e2e6f0;background:#fbfcff;color:#475569;border-radius:16px;
+  padding:5px 11px;font-size:12px;transition:.14s}
+.tutor-quick button:hover{border-color:#a5b0f0;color:var(--accent);background:#f4f5ff;transform:translateY(-1px)}
+.tutor-in{background:#fff;padding:10px 12px}
+.tutor-in input{border:1px solid #e2e6f0;border-radius:9px;background:#fbfcff;font-size:13px}
+.tutor-in input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+.tutor-in button{background:linear-gradient(135deg,#4f46e5,#2563eb);border-radius:9px;font-weight:600}
+.tutor-set{background:#f8f9fd}
+.tutor-set input{border:1px solid #e2e6f0;border-radius:8px;background:#fff}
+.tutor-set .row button{border:1px solid #e2e6f0;border-radius:8px}
+
+/* ---- 窄屏 ---- */
+@media (max-width:640px){
+  .hero{padding:24px 20px 22px;border-radius:16px}
+  .hero h1{font-size:19px;line-height:1.45;text-wrap:balance}
+  .hero .sub{font-size:12px}
+  .hero-badges span{font-size:10.5px;padding:3px 9px}
+  .hero-wave{height:110px}
+  .card{padding:18px 16px;border-radius:15px}
+  .btn{padding:10px 16px;font-size:13.5px}
+  .btn+.btn{margin-left:6px}
+  .qtext{font-size:16px}
+  .opt{padding:11px 13px;font-size:14.5px}
+  .scope-row{grid-template-columns:1fr 1fr;gap:6px 10px}
+  .scope-row .scope-v{grid-column:1/-1}
+  .scope-head{display:none}
+}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
 </style>
 </head>
 <body>
@@ -253,8 +512,29 @@ h1{font-size:22px;margin-bottom:4px}
 
   <!-- ========== 首页 ========== -->
   <div id="screen-home">
-    <h1>信号与系统 · 诊断式学习小模型</h1>
-    <div class="sub">郑君里《信号与系统》(第三版) 第 1–4 章演示版 · 测 → 诊断 → 补弱 → 再测</div>
+    <div class="hero">
+      <svg class="hero-wave" viewBox="0 0 860 160" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="hwg" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#a5b4fc" stop-opacity="0"/>
+            <stop offset="42%" stop-color="#c7d2fe" stop-opacity=".62"/>
+            <stop offset="100%" stop-color="#67e8f9" stop-opacity=".18"/>
+          </linearGradient>
+        </defs>
+        <path d="M0 96 C 70 96 95 26 150 26 S 230 150 300 150 S 380 26 450 26 S 530 150 600 150 S 680 26 750 26 S 820 120 860 120" fill="none" stroke="url(#hwg)" stroke-width="2"/>
+        <path d="M0 128 C 60 128 100 74 160 74 S 240 140 310 140 S 390 74 460 74 S 540 140 610 140 S 690 74 760 74 S 820 108 860 108" fill="none" stroke="url(#hwg)" stroke-width="1.4" opacity=".5"/>
+        <path d="M0 60 C 80 60 110 110 180 110 S 260 40 330 40 S 410 110 480 110 S 560 40 630 40 S 710 110 780 110 S 830 78 860 78" fill="none" stroke="url(#hwg)" stroke-width="1.1" opacity=".3"/>
+      </svg>
+      <div class="hero-inner">
+        <span class="hero-eyebrow">Signals &amp; Systems · 自适应诊断</span>
+        <h1>信号与系统 · 诊断式学习小模型</h1>
+        <div class="sub">郑君里《信号与系统》(第三版) 第 1–4 章演示版 · 测 → 诊断 → 补弱 → 再测</div>
+        <div class="hero-badges">
+          <span>15 个知识点</span><span>41 个题模</span><span>错因画像</span>
+          <span>BKT 掌握度</span><span>间隔复测</span>
+        </div>
+      </div>
+    </div>
     <div class="notice">
       这是用于验证效果的最小原型：15 个知识点、41 个参数化题模（33 文字 + 8 图形），只覆盖第 1–4 章。
       每轮按下方配置即时生成新题（数值、符号、选项顺序都会变化），不再使用固定题目列表。
